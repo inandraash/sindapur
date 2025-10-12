@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Resep extends Model
+class TransaksiPenjualan extends Model
 {
     use HasFactory;
-    
+
+    protected $table = 'transaksi_penjualans';
+
     protected $fillable = [
         'menu_id', 
-        'bahan_baku_id', 
-        'jumlah_dibutuhkan'
+        'jumlah_porsi', 
+        'tanggal_penjualan',
+        'user_id'
     ];
 
     public function menu()
@@ -20,8 +23,8 @@ class Resep extends Model
         return $this->belongsTo(Menu::class);
     }
 
-    public function bahanBaku()
+    public function user()
     {
-        return $this->belongsTo(BahanBaku::class);
+        return $this->belongsTo(User::class);
     }
 }
