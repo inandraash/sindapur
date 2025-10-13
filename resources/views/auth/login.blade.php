@@ -4,7 +4,10 @@
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
-
+        
+        <div class="mb-4 text-center font-bold text-3xl">
+            <h1>Masuk</h1>
+        </div>
         <div>
             <x-input-label for="username" :value="__('Username')" />
             <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />

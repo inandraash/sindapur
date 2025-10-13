@@ -34,10 +34,7 @@
                 <a href="{{ route('admin.pengguna.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Pengguna</a>
             </li>
             <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Manajemen Menu</a>
-            </li>
-            <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Manajemen Resep</a>
+                <a href="{{ route('admin.menu.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Menu</a>
             </li>
             <li class="mb-2">
                 <a href="#" class="block p-2 rounded hover:bg-gray-700">Laporan Lengkap</a>
