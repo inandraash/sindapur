@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Menu;
 use Illuminate\Http\Request;
 use App\Models\BahanBaku;
+use App\Models\Resep;
 
 class ResepController extends Controller
 {
@@ -61,9 +62,19 @@ class ResepController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Resep $resep)
     {
-        //
+        $request->validate([
+            'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        // 2. Update jumlah pada resep yang spesifik
+        $resep->update([
+            'jumlah_dibutuhkan' => $request->jumlah_dibutuhkan,
+        ]);
+
+        // 3. Arahkan kembali dengan pesan sukses
+        return back()->with('success', 'Jumlah bahan dalam resep berhasil diperbarui.');
     }
 
     /**
@@ -71,6 +82,9 @@ class ResepController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $resep = Resep::findOrFail($id);
+        $resep->delete();
+
+        return back()->with('success', 'Bahan berhasil dihapus dari resep.');
     }
 }

@@ -22,7 +22,7 @@
 
             @if (Auth::check() && Auth::user()->role->nama_role == 'Staf Dapur')
             <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Manajemen Stok</a>
+                <a href="{{ route('staf.bahan-baku.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Stok</a>
             </li>
             <li class="mb-2">
                 <a href="#" class="block p-2 rounded hover:bg-gray-700">Catat Penjualan</a>
