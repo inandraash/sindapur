@@ -25,7 +25,7 @@
                 <a href="{{ route('staf.bahan-baku.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Stok</a>
             </li>
             <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Catat Penjualan</a>
+                <a href="{{ route('staf.penjualan.index') }}" class="block p-2 rounded hover:bg-gray-700">Catat Penjualan Harian</a>
             </li>
             @endif
             

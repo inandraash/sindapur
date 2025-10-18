@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ResepController;
 use App\Http\Controllers\StafDapur\BahanBakuController;
+use App\Http\Controllers\StafDapur\PenjualanController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -28,6 +29,9 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
 
 Route::middleware(['auth', 'role:Staf Dapur'])->prefix('staf')->name('staf.')->group(function () {
     Route::resource('bahan-baku', BahanBakuController::class);
+
+    Route::get('/penjualan', [PenjualanController::class, 'index'])->name('penjualan.index');
+    Route::post('/penjualan', [PenjualanController::class, 'store'])->name('penjualan.store');
 });
 
 require __DIR__.'/auth.php';
