@@ -26,4 +26,9 @@ class BahanBaku extends Model
     {
         return $this->hasMany(TransaksiStok::class);
     }
+
+    public function pemakaianHarian()
+    {
+        return $this->hasMany(PemakaianHarian::class);
+    }
 }

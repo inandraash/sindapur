@@ -14,7 +14,6 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Membuat User Admin
         User::create([
             'name' => 'Admin SINDAPUR',
             'username' => 'admin',
@@ -22,7 +21,6 @@ class UserSeeder extends Seeder
             'role_id' => 1
         ]);
 
-        // Membuat User Staf Dapur
         User::create([
             'name' => 'Staf Dapur 1',
             'username' => 'staf',

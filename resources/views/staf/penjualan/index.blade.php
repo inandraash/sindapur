@@ -6,8 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
             @if (session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>
@@ -55,6 +54,42 @@
                     </form>
                 </div>
             </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 md:p-8 text-gray-900">
+                    <h3 class="text-lg font-medium mb-4">Rekap Penjualan Tercatat</h3>
+
+                    <form method="GET" action="{{ route('staf.penjualan.index') }}" class="mb-4 flex items-center space-x-2">
+                        <label for="tanggal_filter" class="text-sm font-medium">Tampilkan Tanggal:</label>
+                        <x-text-input id="tanggal_filter" type="date" name="tanggal" :value="$selectedDate" class="py-1" />
+                        <x-primary-button type="submit" class="py-1">Filter</x-primary-button>
+                    </form>
+
+                    @if($penjualanHarian->isEmpty())
+                        <p class="text-center text-gray-500 mt-4">Belum ada data penjualan yang tercatat untuk tanggal {{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d F Y') }}.</p>
+                    @else
+                        <table class="min-w-full divide-y divide-gray-200 border">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dicatat Oleh</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Menu</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Porsi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach ($penjualanHarian as $penjualan)
+                                    <tr>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm">{{ $penjualan->user->name ?? 'N/A' }}</td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm">{{ $penjualan->menu->nama_menu }}</td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm">{{ number_format($penjualan->jumlah_porsi, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

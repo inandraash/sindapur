@@ -22,7 +22,10 @@
 
             @if (Auth::check() && Auth::user()->role->nama_role == 'Staf Dapur')
             <li class="mb-2">
-                <a href="{{ route('staf.bahan-baku.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Stok</a>
+                <a href="{{ route('staf.bahan-baku.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Bahan Baku</a>
+            </li>
+            <li class="mb-2">
+                <a href="{{ route('staf.stok-masuk.index') }}" class="block p-2 rounded hover:bg-gray-700 @if(request()->routeIs('staf.stok-masuk.*')) bg-gray-700 @endif">Catat Stok Masuk</a>
             </li>
             <li class="mb-2">
                 <a href="{{ route('staf.penjualan.index') }}" class="block p-2 rounded hover:bg-gray-700">Catat Penjualan Harian</a>
@@ -37,11 +40,11 @@
                 <a href="{{ route('admin.menu.index') }}" class="block p-2 rounded hover:bg-gray-700">Manajemen Menu</a>
             </li>
             <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Laporan Lengkap</a>
+                <a href="{{ route('admin.laporan.index') }}" class="block p-2 rounded hover:bg-gray-700">Laporan Lengkap</a>
             </li>
             @endif
             <li class="mb-2">
-                <a href="#" class="block p-2 rounded hover:bg-gray-700">Rekomendasi Belanja</a>
+                <a href="{{ route('prediksi.index') }}" class="block p-2 rounded hover:bg-gray-700">Rekomendasi Belanja</a>
             </li>
         </ul>
     </nav>
