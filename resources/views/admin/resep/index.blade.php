@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-slot name="pageTitle">Atur Resep - {{ $menu->nama_menu }}</x-slot>
+    
     <x-slot name="header">
         <div class="flex items-center space-x-4">
             <a href="{{ route('admin.menu.index') }}" class="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

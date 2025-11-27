@@ -73,6 +73,29 @@ class PenjualanController extends Controller
                     }
                 } // Akhir loop penjualan
 
+                // PENGECEKAN STOK: Validasi apakah stok cukup sebelum memproses
+                $bahanKurang = [];
+                foreach ($pemakaianAgregat as $bahanId => $totalTerpakai) {
+                    $bahan = BahanBaku::find($bahanId);
+                    if ($bahan && $bahan->stok_terkini < $totalTerpakai) {
+                        $bahanKurang[] = [
+                            'nama' => $bahan->nama_bahan,
+                            'stok_tersedia' => $bahan->stok_terkini,
+                            'stok_dibutuhkan' => $totalTerpakai,
+                            'satuan' => $bahan->satuan
+                        ];
+                    }
+                }
+
+                // Jika ada bahan yang kurang, hentikan transaksi
+                if (!empty($bahanKurang)) {
+                    $pesan = 'Stok bahan baku tidak cukup:\n';
+                    foreach ($bahanKurang as $bahan) {
+                        $pesan .= "- {$bahan['nama']}: Tersedia {$bahan['stok_tersedia']} {$bahan['satuan']}, dibutuhkan {$bahan['stok_dibutuhkan']} {$bahan['satuan']}\n";
+                    }
+                    throw new \Exception(trim($pesan));
+                }
+
                 // 4. Loop melalui data agregat untuk mengurangi stok & mencatat histori
                 foreach ($pemakaianAgregat as $bahanId => $totalTerpakai) {
                     if ($totalTerpakai > 0) {
