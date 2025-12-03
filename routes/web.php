@@ -30,6 +30,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/menu/{menu}/resep', [ResepController::class, 'store'])->name('resep.store');
     Route::delete('/resep/{resep}', [ResepController::class, 'destroy'])->name('resep.destroy');
     Route::put('/resep/{resep}', [ResepController::class, 'update'])->name('resep.update');
+    Route::get('/laporan/download', [LaporanController::class, 'download'])->name('laporan.download');
 });
 
 Route::middleware(['auth', 'role:Staf Dapur'])->prefix('staf')->name('staf.')->group(function () {

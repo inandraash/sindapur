@@ -14,9 +14,9 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         $menus = [
-            ['nama_menu' => 'Nasi Rames', 'harga' => 10000],
-            ['nama_menu' => 'Nasi Rames Telur', 'harga' => 12000],
-            ['nama_menu' => 'Nasi Rames Daging', 'harga' => 15000],
+            ['nama_menu' => 'Nasi Rames', 'harga' => 12000],
+            ['nama_menu' => 'Nasi Rames Telur', 'harga' => 17000],
+            ['nama_menu' => 'Nasi Rames Daging', 'harga' => 20000],
             ['nama_menu' => 'Nasi Pecel', 'harga' => 10000],
             ['nama_menu' => 'Soto Ayam', 'harga' => 10000],
             ['nama_menu' => 'Asem-Asem Daging', 'harga' => 18000],

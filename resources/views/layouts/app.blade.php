@@ -7,6 +7,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>@isset($pageTitle){{ $pageTitle }} - @endisset{{ config('app.name', 'SINDAPUR') }}</title>
+        <!-- Favicon: gunakan logo_1 untuk konsistensi proyek ini -->
+        <link rel="icon" href="{{ asset('images/logo_1.png') }}?v=3" type="image/png">
+        <link rel="shortcut icon" href="{{ asset('images/logo_1.png') }}?v=3" type="image/png">
+        <!-- fallback ke /favicon.ico jika browser mencari file .ico -->
+        <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])

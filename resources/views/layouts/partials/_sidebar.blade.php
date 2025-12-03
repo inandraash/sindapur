@@ -5,7 +5,7 @@
 >
     <div class="flex justify-between items-center mb-6">
         <a href="{{ route('dashboard') }}">
-            <h1 class="text-2xl font-bold">SINDAPUR</h1>
+            <img src="{{ asset('images/logo_2.png') }}" alt="SINDAPUR" class="h-28 object-contain" />
         </a>
         <button x-on:click="sidebarOpen = false" class="lg:hidden">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

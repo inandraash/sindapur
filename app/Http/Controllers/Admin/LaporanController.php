@@ -7,6 +7,7 @@ use App\Models\PemakaianHarian;
 use App\Models\TransaksiPenjualan;
 use App\Models\TransaksiStok;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -64,5 +65,58 @@ class LaporanController extends Controller
             'tanggalAkhir',
             'kolomTabel'
         ));
+    }
+
+    public function download(Request $request)
+    {
+        // 1. Ambil filter (sama seperti method index)
+        $tanggalAkhir = $request->input('tanggal_akhir', Carbon::today()->toDateString());
+        $tanggalMulai = $request->input('tanggal_mulai', Carbon::today()->toDateString()); // Default hari ini
+        $jenisLaporan = $request->input('jenis_laporan', 'penjualan');
+
+        $dataLaporan = [];
+        // Variabel judul untuk PDF
+        $judulLaporan = ''; 
+
+        // 2. Ambil data (sama seperti method index)
+        if ($jenisLaporan == 'penjualan') {
+            $judulLaporan = 'Laporan Transaksi Penjualan';
+            $dataLaporan = TransaksiPenjualan::with(['menu', 'user'])
+                ->whereBetween('tanggal_penjualan', [$tanggalMulai, $tanggalAkhir])
+                ->orderBy('tanggal_penjualan', 'asc') // Urutkan dari yang terlama
+                ->get();
+
+        } elseif ($jenisLaporan == 'stok_masuk') {
+            $judulLaporan = 'Laporan Transaksi Stok Masuk';
+            $dataLaporan = TransaksiStok::with(['bahanBaku', 'user'])
+                ->whereBetween('tanggal_masuk', [$tanggalMulai, $tanggalAkhir])
+                ->orderBy('tanggal_masuk', 'asc')
+                ->get();
+
+        } elseif ($jenisLaporan == 'pemakaian') {
+            $judulLaporan = 'Laporan Transaksi Pemakaian Bahan';
+            $dataLaporan = PemakaianHarian::with('bahanBaku')
+                ->whereBetween('tanggal', [$tanggalMulai, $tanggalAkhir])
+                ->orderBy('tanggal', 'asc')
+                ->get();
+        }
+
+        // 3. Render PDF
+        $pdf = Pdf::loadView('admin.laporan.pdf', compact(
+            'dataLaporan', 
+            'jenisLaporan', 
+            'tanggalMulai', 
+            'tanggalAkhir',
+            'judulLaporan'
+        ));
+
+        // Set ukuran kertas dan orientasi (opsional)
+        $pdf->setPaper('A4', 'portrait');
+
+        // 4. Download file
+        // Nama file: laporan-penjualan-2025-11-24.pdf
+        $fileName = 'laporan-' . $jenisLaporan . '-' . Carbon::now()->format('Y-m-d') . '.pdf';
+        
+        return $pdf->download($fileName);
     }
 }
