@@ -15,22 +15,23 @@
                         Tambah Bahan Baku Baru
                     </button>
 
-                    <table class="min-w-full divide-y divide-gray-200 mt-6">
+                    <x-responsive-table>
+                    <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 ...">Nama Bahan</th>
-                                <th class="px-6 py-3 ...">Stok Terkini</th>
-                                <th class="px-6 py-3 ...">Satuan</th>
-                                <th class="relative px-6 py-3"></th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">Nama Bahan</th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">Stok Terkini</th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">Satuan</th>
+                                <th class="relative px-3 sm:px-6 py-2 sm:py-3"></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($bahanBakus as $bahan)
                                 <tr>
-                                    <td class="px-6 py-4">{{ $bahan->nama_bahan }}</td>
-                                    <td class="px-6 py-4">{{ $bahan->stok_terkini }}</td>
-                                    <td class="px-6 py-4">{{ $bahan->satuan }}</td>
-                                    <td class="px-6 py-4 text-right">
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->nama_bahan }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->stok_terkini }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->satuan }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
                                         <button @click="editingBahanBaku = {{ $bahan->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900">Edit</button>
                                         <button @click="deletingBahanBaku = {{ $bahan->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 ml-4">Hapus</button>
                                     </td>
@@ -38,6 +39,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </x-responsive-table>
                 </div>
             </div>
         </div>

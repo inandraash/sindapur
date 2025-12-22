@@ -80,54 +80,90 @@
                         <div class="bg-white border border-gray-200 p-6 rounded-lg">
                             <h4 class="font-bold text-lg mb-4 text-gray-800">Menu Paling Laris (Bulan Ini)</h4>
                             <div class="overflow-x-auto">
-                                <table class="min-w-full border-collapse">
+                                <x-responsive-table>
+                                <table class="min-w-full border-collapse text-sm sm:text-base">
                                     <thead>
                                         <tr class="bg-gray-100">
-                                            <th class="border border-gray-300 px-4 py-2 text-left">Menu</th>
-                                            <th class="border border-gray-300 px-4 py-2 text-right">Total Porsi</th>
-                                            <th class="border border-gray-300 px-4 py-2 text-right">Harga/Porsi</th>
-                                            <th class="border border-gray-300 px-4 py-2 text-right">Total Pendapatan</th>
+                                            <th class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-3 text-left">Menu</th>
+                                            <th class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-3 text-right">Total Porsi</th>
+                                            <th class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-3 text-right">Harga/Porsi</th>
+                                            <th class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-3 text-right">Total Pendapatan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @forelse ($menuLaris as $menu)
                                             <tr class="hover:bg-gray-50">
-                                                <td class="border border-gray-300 px-4 py-2">{{ $menu->menu->nama_menu }}</td>
-                                                <td class="border border-gray-300 px-4 py-2 text-right font-medium">{{ (int)$menu->total_porsi }}</td>
-                                                <td class="border border-gray-300 px-4 py-2 text-right">Rp {{ number_format($menu->menu->harga, 0, ',', '.') }}</td>
-                                                <td class="border border-gray-300 px-4 py-2 text-right font-bold text-green-600">
+                                                <td class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-4">{{ $menu->menu->nama_menu }}</td>
+                                                <td class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-4 text-right font-medium">{{ (int)$menu->total_porsi }}</td>
+                                                <td class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-4 text-right">Rp {{ number_format($menu->menu->harga, 0, ',', '.') }}</td>
+                                                <td class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-4 text-right font-bold text-green-600">
                                                     Rp {{ number_format($menu->total_porsi * $menu->menu->harga, 0, ',', '.') }}
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="4" class="border border-gray-300 px-4 py-2 text-center text-gray-500">Belum ada data penjualan bulan ini</td>
+                                                <td colspan="4" class="border border-gray-300 px-3 sm:px-6 py-2 sm:py-4 text-center text-gray-500">Belum ada data penjualan bulan ini</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
                                 </table>
+                                </x-responsive-table>
                             </div>
                         </div>
 
                     {{-- TAMPILAN KHUSUS STAF DAPUR --}}
                     @elseif ($role == 'Staf Dapur')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <div class="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                                <h4 class="font-bold text-orange-700">Stok Kritis (Di Bawah 10)</h4>
-                                <ul class="mt-2 list-disc list-inside">
+
+                            <div class="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-bold text-gray-800">Perhatian Stok</h4>
+                                    <span class="text-sm text-gray-500">Menampilkan maksimum 5 item</span>
+                                </div>
+
+                                <div class="mt-4 space-y-4">
                                     @forelse ($stokKritis as $bahan)
-                                        <li>
-                                            {{ $bahan->nama_bahan }}: 
-                                            <span class="font-medium">{{ number_format($bahan->stok_terkini, 0, ',', '.') }} {{ $bahan->satuan }}</span>
-                                        </li>
+                                        @php
+                                            $stokNow = (float) $bahan->stok_terkini;
+                                            $threshold = $bahan->critical_threshold ?? 10;
+                                            if (isset($bahan->critical_percent) && $bahan->critical_percent !== null) {
+                                                $percent = (int) max(0, min(100, $bahan->critical_percent));
+                                            } else {
+                                                $percent = (int) max(0, min(100, round(($stokNow / max(1, $threshold)) * 100)));
+                                            }
+                                            $isCritical = $stokNow <= $threshold;
+                                        @endphp
+
+                                        <div class="p-3 bg-orange-50 border border-orange-100 rounded-lg">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <div class="flex items-center gap-2">
+                                                        <h5 class="font-semibold text-gray-800">{{ $bahan->nama_bahan }}</h5>
+                                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium "
+                                                              style="background-color: {{ $isCritical ? '#fee2e2' : '#fef3c7' }}; color: {{ $isCritical ? '#b91c1c' : '#92400e' }};">
+                                                            Ambang: {{ number_format($threshold, 0, ',', '.') }} {{ $bahan->satuan ?? '' }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-sm text-gray-600 mt-1">Stok sekarang: <span class="font-medium">{{ number_format($bahan->stok_terkini, 0, ',', '.') }} {{ $bahan->satuan }}</span></p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="text-sm font-semibold {{ $isCritical ? 'text-red-600' : 'text-yellow-700' }}">{{ $percent }}%</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                                    <div class="h-2 rounded-full" style="width: {{ $percent }}%; background-color: {{ $isCritical ? '#ef4444' : '#f59e0b' }};"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @empty
                                         <p class="text-sm text-gray-500">Semua stok dalam batas aman.</p>
                                     @endforelse
-                                </ul>
+                                </div>
                             </div>
 
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
                                 <h4 class="font-bold">Pemakaian Bahan Terbanyak (7 Hari Terakhir)</h4>
                                 <div>
                                     <canvas id="pemakaianChart" class="mt-4"></canvas>

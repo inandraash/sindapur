@@ -66,11 +66,12 @@
                     </h3>
 
                     {{-- Tabel Hasil (Versi Ringkasan) --}}
-                    <table class="min-w-full divide-y divide-gray-200 border">
+                    <x-responsive-table>
+                    <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                         <thead class="bg-gray-50">
                             <tr>
                                 @foreach($kolomTabel as $kolom)
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ $kolom }}</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ $kolom }}</th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -78,27 +79,28 @@
                             @forelse ($dataLaporan as $data)
                                 <tr>
                                     @if($jenisLaporan == 'penjualan')
-                                        <td class="px-6 py-4">{{ $data->menu->nama_menu }}</td>
-                                        <td class="px-6 py-4">{{ number_format($data->total_porsi, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->menu->nama_menu }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_porsi, 0, ',', '.') }}</td>
                                     @elseif($jenisLaporan == 'stok_masuk')
-                                        <td class="px-6 py-4">{{ $data->bahanBaku->nama_bahan }}</td>
-                                        <td class="px-6 py-4">{{ number_format($data->total_masuk, 0, ',', '.') }}</td>
-                                        <td class="px-6 py-4">{{ $data->bahanBaku->satuan }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->nama_bahan }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_masuk, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->satuan }}</td>
                                     @else
-                                        <td class="px-6 py-4">{{ $data->bahanBaku->nama_bahan }}</td>
-                                        <td class="px-6 py-4">{{ number_format($data->total_terpakai, 0, ',', '.') }}</td>
-                                        <td class="px-6 py-4">{{ $data->bahanBaku->satuan }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->nama_bahan }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_terpakai, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->satuan }}</td>
                                     @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ count($kolomTabel) }}" class="px-6 py-4 text-center text-gray-500">
+                                    <td colspan="{{ count($kolomTabel) }}" class="px-3 sm:px-6 py-2 sm:py-4 text-center text-gray-500">
                                         Tidak ada data untuk rentang tanggal dan jenis laporan ini.
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                    </x-responsive-table>
                 </div>
             </div>
         </div>

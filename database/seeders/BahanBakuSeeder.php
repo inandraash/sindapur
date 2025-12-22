@@ -17,7 +17,6 @@ class BahanBakuSeeder extends Seeder
             ['nama_bahan' => 'Daging Sapi', 'satuan' => 'kg', 'stok_terkini' => 20],
             ['nama_bahan' => 'Daging Ayam', 'satuan' => 'kg', 'stok_terkini' => 25],
             ['nama_bahan' => 'Telur Ayam', 'satuan' => 'butir', 'stok_terkini' => 100],
-            ['nama_bahan' => 'Tempe', 'satuan' => 'kg', 'stok_terkini' => 10],
 
             ['nama_bahan' => 'Beras', 'satuan' => 'kg', 'stok_terkini' => 50],
             ['nama_bahan' => 'Kangkung', 'satuan' => 'ikat', 'stok_terkini' => 30],
@@ -38,6 +37,29 @@ class BahanBakuSeeder extends Seeder
         ];
 
         foreach ($bahanBakus as $bahan) {
+            if (!isset($bahan['stok_maksimum'])) {
+                $base = floatval($bahan['stok_terkini'] ?? 0);
+                $name = strtolower($bahan['nama_bahan']);
+                $satuan = strtolower($bahan['satuan']);
+
+                if (strpos($name, 'daging sapi') !== false) {
+                    $bahan['stok_maksimum'] = max(50, $base * 3);
+                } elseif (strpos($name, 'daging ayam') !== false) {
+                    $bahan['stok_maksimum'] = max(60, $base * 3);
+                } elseif (strpos($name, 'telur') !== false) {
+                    $bahan['stok_maksimum'] = max(500, $base * 5);
+                } elseif (strpos($name, 'beras') !== false) {
+                    $bahan['stok_maksimum'] = max(100, $base * 2);
+                } elseif (strpos($name, 'minyak') !== false) {
+                    $bahan['stok_maksimum'] = max(40, $base * 3);
+                } elseif (in_array($satuan, ['ikat', 'pcs'])) {
+                    $bahan['stok_maksimum'] = max(100, $base * 4);
+                } else {
+                    $bahan['stok_maksimum'] = max($base * 3, $base + 20);
+                }
+            }
+
+            $bahan['stok_maksimum'] = round(floatval($bahan['stok_maksimum']), 2);
             BahanBaku::create($bahan);
         }
     }

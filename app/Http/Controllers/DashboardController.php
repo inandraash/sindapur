@@ -105,11 +105,28 @@ class DashboardController extends Controller
         
         // ----------------- DATA UNTUK STAF DAPUR -----------------
         } elseif ($role == 'Staf Dapur') {
-            $ambangBatasKritis = 10; 
-            $viewData['stokKritis'] = BahanBaku::where('stok_terkini', '<=', $ambangBatasKritis)
-                                        ->orderBy('stok_terkini', 'asc')
-                                        ->limit(5)
-                                        ->get();
+            // Hitung stok kritis per-item. Jika tersedia, gunakan 20% dari stok_maksimum
+            // sebagai ambang kritis. Jika stok_maksimum null, fallback ke 10.
+            $bahanAll = BahanBaku::orderBy('stok_terkini', 'asc')->get();
+
+            $stokKritis = $bahanAll->filter(function ($bahan) {
+                $stokNow = (float) $bahan->stok_terkini;
+
+                if ($bahan->stok_maksimum !== null) {
+                    $threshold = max(0, (int) floor($bahan->stok_maksimum * 0.2));
+                    $threshold = max($threshold, 1);
+                } else {
+                    $threshold = 10;
+                }
+
+                // Pasang data tambahan untuk digunakan di view
+                $bahan->critical_threshold = $threshold;
+                $bahan->critical_percent = $bahan->stok_maksimum ? round(($stokNow / $bahan->stok_maksimum) * 100, 0) : null;
+
+                return $stokNow <= $threshold;
+            })->take(5)->values();
+
+            $viewData['stokKritis'] = $stokKritis;
 
             $tanggalMulai = Carbon::today()->subDays(6);
             $tanggalSelesai = Carbon::today();

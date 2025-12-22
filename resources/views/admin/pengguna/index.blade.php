@@ -16,22 +16,23 @@
                         Tambah Pengguna Baru
                     </button>
 
-                    <table class="min-w-full divide-y divide-gray-200 mt-6">
+                    <x-responsive-table>
+                    <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                                <th class="relative px-6 py-3"></th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th class="relative px-3 sm:px-6 py-2 sm:py-3"></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($users as $user)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->username }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->role->nama_role }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->name }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->username }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->role->nama_role }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button @click="editingUser = {{ $user->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900">
                                             Edit
                                         </button>
@@ -42,6 +43,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </x-responsive-table>
                 </div>
             </div>
         </div>

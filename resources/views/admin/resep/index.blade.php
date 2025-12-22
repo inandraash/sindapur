@@ -44,22 +44,23 @@
 
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Daftar Bahan Saat Ini</h2>
-                <table class="min-w-full divide-y divide-gray-200">
+                    <x-responsive-table>
+                <table class="min-w-full divide-y divide-gray-200 text-sm sm:text-base">
                     <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Bahan</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Satuan</th>
-                            <th class="relative px-6 py-3"></th>
+                            <tr>
+                            <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Bahan</th>
+                            <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                            <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Satuan</th>
+                            <th class="relative px-3 sm:px-6 py-2 sm:py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($reseps as $resep)
-                            <tr>
-                                <td class="px-6 py-4">{{ $resep->bahanBaku->nama_bahan }}</td>
-                                <td class="px-6 py-4">{{ $resep->jumlah_dibutuhkan }}</td>
-                                <td class="px-6 py-4">{{ $resep->bahanBaku->satuan }}</td>
-                                <td class="px-6 py-4 text-right">
+                                <tr>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->bahanBaku->nama_bahan }}</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->jumlah_dibutuhkan }}</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->bahanBaku->satuan }}</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
                                     <button @click="editingResep = {{ $resep->load('bahanBaku')->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 mr-4">
                                         Edit
                                     </button>
@@ -70,13 +71,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="4" class="px-3 sm:px-6 py-2 sm:py-4 text-center text-gray-500">
                                     Belum ada bahan yang ditambahkan ke resep ini.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+                </x-responsive-table>
             </div>
         </div>
 

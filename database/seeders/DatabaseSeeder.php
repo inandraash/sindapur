@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             BahanBakuSeeder::class,
             MenuSeeder::class,
             ResepSeeder::class,
+            PenjualanSeeder::class,
         ]);
     }
 }

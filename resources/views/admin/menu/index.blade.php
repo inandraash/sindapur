@@ -5,7 +5,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Manajemen Menu</h2>
     </x-slot>
 
-    <div class="py-12">
+    <div x-data="{ deleteModalOpen: false, deletingMenu: null }" class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -13,27 +13,61 @@
                         Tambah Menu Baru
                     </a>
 
-                    <table class="min-w-full divide-y divide-gray-200 mt-6">
+                    <x-responsive-table>
+                    <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 ...">Nama Menu</th>
-                                <th class="px-6 py-3 ...">Harga</th>
-                                <th class="relative px-6 py-3"></th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3 ...">Nama Menu</th>
+                                <th class="px-3 sm:px-6 py-2 sm:py-3 ...">Harga</th>
+                                <th class="relative px-3 sm:px-6 py-2 sm:py-3"></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($menus as $menu)
                                 <tr>
-                                    <td class="px-6 py-4">{{ $menu->nama_menu }}</td>
-                                    <td class="px-6 py-4">Rp {{ number_format($menu->harga, 0, ',', '.') }}</td>
-                                    <td class="px-6 py-4 text-right">
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $menu->nama_menu }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4">Rp {{ number_format($menu->harga, 0, ',', '.') }}</td>
+                                    <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
                                         <a href="{{ route('admin.resep.index', $menu) }}" class="font-medium text-green-600 hover:text-green-900 mr-4">Atur Resep</a>
-                                        <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                        <a href="{{ route('admin.menu.edit', $menu) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</a>
+                                        <button @click="deletingMenu = {{ $menu->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900">Hapus</button>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                    </x-responsive-table>
+                    
+                    <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+                            <div x-show="deleteModalOpen" x-transition @click="deleteModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
+
+                            <div x-show="deleteModalOpen" x-transition class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                                    Konfirmasi Penghapusan
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">
+                                        Anda yakin ingin menghapus menu <strong x-text="deletingMenu ? deletingMenu.nama_menu : ''"></strong>? Tindakan ini akan menghapus resep terkait.
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 flex justify-end space-x-2">
+                                    <button @click="deleteModalOpen = false" type="button" class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-transparent rounded-md hover:bg-gray-200 focus:outline-none">
+                                        Batal
+                                    </button>
+
+                                    <form method="POST" :action="deletingMenu ? `/admin/menu/${deletingMenu.id}` : '#'" x-if="deletingMenu">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none">
+                                            Ya, Hapus Menu
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

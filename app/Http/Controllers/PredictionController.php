@@ -12,48 +12,78 @@ class PredictionController extends Controller
     /**
      * Menampilkan halaman prediksi (rekomendasi belanja).
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Tentukan periode (n) untuk SMA
-        $periode_n = 7; 
-        
-        // Data yang digunakan: 7 hari terakhir, berakhir KEMARIN.
-        // Data hari ini belum selesai, jadi kita prediksi berdasarkan data kemarin.
+        $history_n = 7;
+        $allowed_days = [1,3,7];
+        $replenish_days = (int) $request->input('replenish_days', 1);
+        if (!in_array($replenish_days, $allowed_days, true)) {
+            $replenish_days = 1;
+        }
+
+        if ($request->has('use_max_stock')) {
+            $use_max = filter_var($request->input('use_max_stock', false), FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $use_max = true;
+        }
+
         $tanggalAkhir = Carbon::today()->subDay();
-        $tanggalMulai = $tanggalAkhir->copy()->subDays($periode_n - 1);
+        $tanggalMulai = $tanggalAkhir->copy()->subDays($history_n - 1);
+
+        $pemakaianAgg = PemakaianHarian::selectRaw('bahan_baku_id, SUM(jumlah_terpakai) as total')
+            ->whereBetween('tanggal', [$tanggalMulai->toDateString(), $tanggalAkhir->toDateString()])
+            ->groupBy('bahan_baku_id')
+            ->pluck('total', 'bahan_baku_id');
 
         $rekomendasi = [];
         $bahanBakus = BahanBaku::orderBy('nama_bahan')->get();
 
         foreach ($bahanBakus as $bahan) {
-            // Ambil data pemakaian 7 hari terakhir untuk bahan baku ini
-            $pemakaianHistoris = PemakaianHarian::where('bahan_baku_id', $bahan->id)
-                ->whereBetween('tanggal', [$tanggalMulai, $tanggalAkhir])
-                ->get();
+            $totalPemakaian = (float) ($pemakaianAgg[$bahan->id] ?? 0.0);
 
-            // Hitung total pemakaian selama n hari
-            $totalPemakaian = $pemakaianHistoris->sum('jumlah_terpakai');
-            
-            // Hitung rata-rata (SMA)
-            $prediksi = $totalPemakaian / $periode_n;
+            // rata-rata diasumsikan termasuk hari tanpa data (0)
+            $dailyAvg = $history_n > 0 ? ($totalPemakaian / $history_n) : 0;
+
+            $requiredForPeriod = (int) ceil($dailyAvg * max(0, $replenish_days));
+
+            $stokNow = (float) $bahan->stok_terkini;
+            $buyQty = max(0, $requiredForPeriod - $stokNow);
+
+            $stokMaks = $bahan->stok_maksimum ?? null;
+            if ($use_max && $stokMaks !== null) {
+                $maxCanBuy = max(0, $stokMaks - $stokNow);
+                $buyQty = min($buyQty, $maxCanBuy);
+            }
+
+            // contoh kebijakan opsional: minimal order 1 jika ada pemakaian historis tapi purchase = 0
+            // if ($totalPemakaian > 0 && $buyQty <= 0 && $stokNow < ($stokMaks ?? INF)) {
+            //     $buyQty = 1;
+            // }
 
             $rekomendasi[] = [
                 'nama_bahan' => $bahan->nama_bahan,
-                'stok_terkini' => $bahan->stok_terkini,
+                'stok_terkini' => $stokNow,
                 'satuan' => $bahan->satuan,
-                'total_pemakaian_7_hari' => $totalPemakaian, // <-- Data baru untuk transparansi
-                'prediksi_pembelian' => ceil($prediksi) // Dibulatkan ke atas
+                'history_days' => $history_n,
+                'total_pemakaian_history' => $totalPemakaian,
+                'daily_average' => round($dailyAvg, 3),
+                'replenish_days' => $replenish_days,
+                'required_for_period' => $requiredForPeriod,
+                'stok_maksimum' => $stokMaks,
+                'prediksi_pembelian' => (int) ceil($buyQty),
             ];
         }
-        
+
         $tanggalPrediksi = Carbon::today()->translatedFormat('l, d F Y');
 
         return view('prediksi.index', compact(
-            'rekomendasi', 
-            'periode_n', 
-            'tanggalMulai', 
-            'tanggalAkhir', 
-            'tanggalPrediksi'
+            'rekomendasi',
+            'history_n',
+            'tanggalMulai',
+            'tanggalAkhir',
+            'tanggalPrediksi',
+            'replenish_days',
+            'use_max'
         ));
     }
 }

@@ -19,7 +19,7 @@
 
     </head>
     <body class="font-sans antialiased">
-        <div x-data="{ sidebarOpen: true }" class="relative min-h-screen bg-gray-100">
+        <div x-data="{ sidebarOpen: (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true) }" class="relative min-h-screen bg-gray-100">
             
             @include('layouts.partials._sidebar')
 

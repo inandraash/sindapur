@@ -56,7 +56,8 @@ class MenuController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $menu = Menu::findOrFail($id);
+        return view('admin.menu.edit', compact('menu'));
     }
 
     /**
@@ -64,7 +65,18 @@ class MenuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'nama_menu' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+        ]);
+
+        $menu = Menu::findOrFail($id);
+        $menu->update([
+            'nama_menu' => $request->nama_menu,
+            'harga' => $request->harga,
+        ]);
+
+        return redirect()->route('admin.menu.index')->with('success', 'Menu berhasil diperbarui.');
     }
 
     /**
@@ -72,6 +84,9 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $menu = Menu::findOrFail($id);
+        $menu->delete();
+
+        return redirect()->route('admin.menu.index')->with('success', 'Menu berhasil dihapus.');
     }
 }
