@@ -1,33 +1,31 @@
 <x-guest-layout>
-    <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" class="space-y-5">
         @csrf
         
-        <div class="mb-4 text-center font-bold text-3xl">
-            <h1>Masuk</h1>
+        <div class="mb-6 text-center">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Masuk SINDAPUR</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Kelola bahan baku dengan mudah</p>
         </div>
+
         <div>
             <x-input-label for="username" :value="__('Username')" />
-            <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
+            <x-text-input id="username" class="block mt-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('username')" class="mt-2" />
         </div>
 
-        <div class="mt-4">
+        <div>
             <x-input-label for="password" :value="__('Kata Sandi')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
+            <x-text-input id="password" class="block mt-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             type="password"
                             name="password"
                             required autocomplete="current-password" />
-
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-
-            <x-primary-button class="ms-3">
+        <div class="flex items-center justify-center mt-6">
+            <x-primary-button class="w-full justify-center py-3">
                 {{ __('Masuk') }}
             </x-primary-button>
         </div>

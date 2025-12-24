@@ -16,12 +16,16 @@ class PenjualanController extends Controller
 {
     public function index(Request $request)
     {
-        $menus = Menu::where('harga', '>', 0)->orderBy('nama_menu')->get();
+        $menus = Menu::where('harga', '>', 0)->with('reseps.bahanBaku')->orderBy('nama_menu')->get();
         $selectedDate = $request->input('tanggal', Carbon::today()->toDateString());
-        $penjualanHarian = TransaksiPenjualan::with(['menu', 'user'])
+        
+        $penjualanHarian = TransaksiPenjualan::selectRaw('menu_id, SUM(jumlah_porsi) as total_porsi, MAX(created_at) as last_recorded')
             ->whereDate('tanggal_penjualan', $selectedDate)
-            ->orderBy('created_at', 'desc')
+            ->groupBy('menu_id')
+            ->with('menu')
+            ->orderBy('last_recorded', 'desc')
             ->get();
+        
         return view('staf.penjualan.index', compact('menus', 'selectedDate', 'penjualanHarian'));
     }
 
@@ -33,7 +37,6 @@ class PenjualanController extends Controller
             'tanggal_penjualan' => ['required', 'date'],
         ]);
 
-        // Array sementara untuk mengagregasi total pemakaian per bahan baku
         $pemakaianAgregat = [];
         $nasiRamesDasar = Menu::where('nama_menu', 'Nasi Rames')->first();
 
@@ -46,10 +49,9 @@ class PenjualanController extends Controller
                 
                 foreach ($request->penjualan as $menuId => $jumlahPorsi) {
                     if ($jumlahPorsi > 0) {
-                        $menu = Menu::find($menuId);
+                        $menu = Menu::with('reseps.bahanBaku')->find($menuId);
                         if (!$menu) continue; 
 
-                        // 1. Catat transaksi penjualan (untuk rekap staf)
                         TransaksiPenjualan::create([
                             'menu_id' => $menuId,
                             'jumlah_porsi' => $jumlahPorsi,
@@ -57,13 +59,11 @@ class PenjualanController extends Controller
                             'user_id' => Auth::id(),
                         ]);
 
-                        // 2. Agregasi pemakaian bahan dari resep menu itu sendiri (misal: telur, daging)
                         foreach ($menu->reseps as $resep) {
                             $totalPemakaian = $resep->jumlah_dibutuhkan * $jumlahPorsi;
                             $pemakaianAgregat[$resep->bahan_baku_id] = ($pemakaianAgregat[$resep->bahan_baku_id] ?? 0) + $totalPemakaian;
                         }
 
-                        // 3. LOGIKA KHUSUS: Agregasi pemakaian bahan dasar Nasi Rames
                         if (str_contains($menu->nama_menu, 'Nasi Rames') && $menu->nama_menu != 'Nasi Rames') {
                             foreach ($nasiRamesDasar->reseps as $resepDasar) {
                                 $totalPemakaianDasar = $resepDasar->jumlah_dibutuhkan * $jumlahPorsi;
@@ -71,20 +71,17 @@ class PenjualanController extends Controller
                             }
                         }
                     }
-                } // Akhir loop penjualan
+                }
 
-                // PENGECEKAN STOK: Validasi apakah stok cukup sebelum memproses
                 $bahanKurang = [];
                 $bahanHabis = [];
                 foreach ($pemakaianAgregat as $bahanId => $totalTerpakai) {
                     $bahan = BahanBaku::find($bahanId);
                     if (!$bahan) continue;
                     
-                    // Cek apakah stok sudah habis (0)
                     if ($bahan->stok_terkini <= 0) {
                         $bahanHabis[] = $bahan->nama_bahan;
                     }
-                    // Cek apakah stok tidak cukup
                     elseif ($bahan->stok_terkini < $totalTerpakai) {
                         $bahanKurang[] = [
                             'nama' => $bahan->nama_bahan,
@@ -95,14 +92,12 @@ class PenjualanController extends Controller
                     }
                 }
 
-                // Jika ada bahan yang habis, hentikan transaksi
                 if (!empty($bahanHabis)) {
                     $pesan = 'Bahan baku berikut sudah habis (stok = 0) dan tidak dapat digunakan:\n';
                     $pesan .= '- ' . implode("\n- ", $bahanHabis);
                     throw new \Exception($pesan);
                 }
 
-                // Jika ada bahan yang kurang, hentikan transaksi
                 if (!empty($bahanKurang)) {
                     $pesan = 'Stok bahan baku tidak cukup:\n';
                     foreach ($bahanKurang as $bahan) {
@@ -111,13 +106,10 @@ class PenjualanController extends Controller
                     throw new \Exception(trim($pesan));
                 }
 
-                // 4. Loop melalui data agregat untuk mengurangi stok & mencatat histori
                 foreach ($pemakaianAgregat as $bahanId => $totalTerpakai) {
                     if ($totalTerpakai > 0) {
-                        // TUGAS 1: Mengurangi Saldo
                         BahanBaku::find($bahanId)->decrement('stok_terkini', $totalTerpakai);
 
-                        // TUGAS 2: Mencatat Riwayat Pengeluaran (untuk SMA)
                         PemakaianHarian::create([
                             'bahan_baku_id' => $bahanId,
                             'jumlah_terpakai' => $totalTerpakai,
@@ -125,7 +117,7 @@ class PenjualanController extends Controller
                         ]);
                     }
                 }
-            }); // Akhir transaction
+            });
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
@@ -138,7 +130,6 @@ class PenjualanController extends Controller
 
         $today = Carbon::today()->toDateString();
 
-        // Ambil data penjualan hari ini, beserta nama menu
         $penjualanHariIni = TransaksiPenjualan::with('menu')
             ->whereDate('tanggal_penjualan', $today)
             ->orderBy('created_at', 'desc')

@@ -21,6 +21,11 @@ class PredictionController extends Controller
             $replenish_days = 1;
         }
 
+        $search = trim((string) $request->input('search', ''));
+        $allowedSort = ['nama_bahan', 'stok_terkini', 'stok_maksimum', 'total_pemakaian_history', 'prediksi_pembelian'];
+        $sort_by = in_array($request->input('sort_by'), $allowedSort, true) ? $request->input('sort_by') : 'nama_bahan';
+        $sort_dir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
         if ($request->has('use_max_stock')) {
             $use_max = filter_var($request->input('use_max_stock', false), FILTER_VALIDATE_BOOLEAN);
         } else {
@@ -36,12 +41,16 @@ class PredictionController extends Controller
             ->pluck('total', 'bahan_baku_id');
 
         $rekomendasi = [];
-        $bahanBakus = BahanBaku::orderBy('nama_bahan')->get();
+        $bahanBakus = BahanBaku::when($search !== '', function ($q) use ($search) {
+                $q->where('nama_bahan', 'like', "%{$search}%");
+            })
+            ->orderBy('nama_bahan')
+            ->get();
 
         foreach ($bahanBakus as $bahan) {
             $totalPemakaian = (float) ($pemakaianAgg[$bahan->id] ?? 0.0);
 
-            // rata-rata diasumsikan termasuk hari tanpa data (0)
+            //perhitungan rata-rata pemakaian harian
             $dailyAvg = $history_n > 0 ? ($totalPemakaian / $history_n) : 0;
 
             $requiredForPeriod = (int) ceil($dailyAvg * max(0, $replenish_days));
@@ -55,10 +64,10 @@ class PredictionController extends Controller
                 $buyQty = min($buyQty, $maxCanBuy);
             }
 
-            // contoh kebijakan opsional: minimal order 1 jika ada pemakaian historis tapi purchase = 0
-            // if ($totalPemakaian > 0 && $buyQty <= 0 && $stokNow < ($stokMaks ?? INF)) {
-            //     $buyQty = 1;
-            // }
+            // membuat prediksi 1 ketika terdapat pemakaian tapi tidak ada pembelian
+            if ($totalPemakaian > 0 && $buyQty <= 0 && $stokNow < ($stokMaks ?? INF)) {
+                $buyQty = 1;
+            }
 
             $rekomendasi[] = [
                 'nama_bahan' => $bahan->nama_bahan,
@@ -74,6 +83,19 @@ class PredictionController extends Controller
             ];
         }
 
+        usort($rekomendasi, function ($a, $b) use ($sort_by, $sort_dir) {
+            $va = $a[$sort_by] ?? null;
+            $vb = $b[$sort_by] ?? null;
+
+            if (is_string($va) || is_string($vb)) {
+                $cmp = strcasecmp((string) $va, (string) $vb);
+            } else {
+                $cmp = ($va <=> $vb);
+            }
+
+            return $sort_dir === 'asc' ? $cmp : -$cmp;
+        });
+
         $tanggalPrediksi = Carbon::today()->translatedFormat('l, d F Y');
 
         return view('prediksi.index', compact(
@@ -83,7 +105,10 @@ class PredictionController extends Controller
             'tanggalAkhir',
             'tanggalPrediksi',
             'replenish_days',
-            'use_max'
+            'use_max',
+            'search',
+            'sort_by',
+            'sort_dir'
         ));
     }
 }

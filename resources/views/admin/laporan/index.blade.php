@@ -10,7 +10,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- Form Filter --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <form id="filter-form" method="GET" action="{{ route('admin.laporan.index') }}" class="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-4">
@@ -47,11 +46,9 @@
                 </div>
             </div>
 
-            {{-- Hasil Laporan --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-6">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- Judul Laporan Dinamis --}}
                     <h3 class="text-lg font-medium mb-4">
                         @if($jenisLaporan == 'penjualan')
                             Laporan Ringkasan Penjualan per Menu
@@ -65,7 +62,6 @@
                         </span>
                     </h3>
 
-                    {{-- Tabel Hasil (Versi Ringkasan) --}}
                     <x-responsive-table>
                     <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                         <thead class="bg-gray-50">

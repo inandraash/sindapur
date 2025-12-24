@@ -24,7 +24,6 @@ class StokController extends Controller
         return view('staf.stok.index', compact('bahanBakus', 'selectedDate', 'stokMasukHarian'));
     }
 
-    // Menyimpan data stok masuk dan menambah stok di tabel bahan baku.
     public function store(Request $request)
     {
         $request->validate([

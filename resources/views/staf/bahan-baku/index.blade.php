@@ -56,6 +56,7 @@
                             <div><x-input-label for="stok_terkini" value="Stok Awal" /><x-text-input id="stok_terkini" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" :value="old('stok_terkini')" required /><x-input-error :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
                             <div><x-input-label for="satuan" value="Satuan (kg, liter, pcs)" /><x-text-input id="satuan" class="block mt-1 w-full" type="text" name="satuan" :value="old('satuan')" required /><x-input-error :messages="$errors->get('satuan')" class="mt-2" /></div>
                         </div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" :value="old('stok_maksimum')" /><x-input-error :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
                         <div class="flex items-center justify-end mt-6"><button type="button" @click="addModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button>Simpan</x-primary-button></div>
                     </form>
                 </div>
@@ -76,6 +77,7 @@
                             <div><x-input-label for="stok_terkini_edit" value="Stok Terkini" /><x-text-input id="stok_terkini_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="editingBahanBaku.stok_terkini" required /><x-input-error :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
                             <div><x-input-label for="satuan_edit" value="Satuan" /><x-text-input id="satuan_edit" class="block mt-1 w-full" type="text" name="satuan" x-model="editingBahanBaku.satuan" required /><x-input-error :messages="$errors->get('satuan')" class="mt-2" /></div>
                         </div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum_edit" value="Stok Maksimum" /><x-text-input id="stok_maksimum_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="editingBahanBaku.stok_maksimum" /><x-input-error :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
                         <div class="flex items-center justify-end mt-6"><button type="button" @click="editModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button>Perbarui</x-primary-button></div>
                     </form>
                 </div>

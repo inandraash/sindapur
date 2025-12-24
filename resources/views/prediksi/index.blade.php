@@ -21,28 +21,65 @@
                         </p>
                     </div>
 
-                    <form method="GET" action="{{ route('prediksi.index') }}" id="form-prediksi" class="mb-4 flex items-center space-x-3">
-                        <label class="text-sm font-medium">Periode Belanja (hari):</label>
-                        <select name="replenish_days" id="period_days" class="border text-start rounded px-2 flex w-20 py-1">
-                            <option value="1" {{ ((isset($replenish_days) && $replenish_days==1) || !isset($replenish_days)) ? 'selected' : '' }}>1</option>
-                            <option value="3" {{ (isset($replenish_days) && $replenish_days==3) ? 'selected' : '' }}>3</option>
-                            <option value="7" {{ (isset($replenish_days) && $replenish_days==7) ? 'selected' : '' }}>7</option>
-                        </select>
+                    @php
+                        $baseQuery = request()->except(['sort_by', 'sort_dir']);
+                        $sortIcons = function($col) use ($sort_by, $sort_dir) {
+                            $isActive = ($sort_by ?? 'nama_bahan') === $col;
+                            $ascActive = $isActive && ($sort_dir ?? 'asc') === 'asc';
+                            $descActive = $isActive && ($sort_dir ?? 'asc') === 'desc';
+                            return [
+                                'asc' => $ascActive,
+                                'desc' => $descActive,
+                            ];
+                        };
+                        $sortLink = function($col) use ($baseQuery, $sort_by, $sort_dir) {
+                            $isActive = ($sort_by ?? 'nama_bahan') === $col;
+                            $nextDir = ($isActive && ($sort_dir ?? 'asc') === 'asc') ? 'desc' : 'asc';
+                            return route('prediksi.index', array_merge($baseQuery, [
+                                'sort_by' => $col,
+                                'sort_dir' => $nextDir,
+                            ]));
+                        };
+                    @endphp
+
+                    <form method="GET" action="{{ route('prediksi.index') }}" id="form-prediksi" class="mb-4 grid grid-cols-1 lg:grid-cols-4 gap-3 items-end">
+                        <div>
+                            <label class="text-sm font-medium">Periode Belanja (hari):</label>
+                            <select name="replenish_days" id="period_days" class="border text-start rounded px-2 w-full py-2 mt-1">
+                                <option value="1" {{ ((isset($replenish_days) && $replenish_days==1) || !isset($replenish_days)) ? 'selected' : '' }}>1</option>
+                                <option value="3" {{ (isset($replenish_days) && $replenish_days==3) ? 'selected' : '' }}>3</option>
+                                <option value="7" {{ (isset($replenish_days) && $replenish_days==7) ? 'selected' : '' }}>7</option>
+                            </select>
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            <label class="text-sm font-medium" for="search">Cari Bahan Baku:</label>
+                            <input type="text" id="search" name="search" value="{{ $search ?? '' }}" placeholder="Nama bahan baku..." class="border rounded px-3 py-2 w-full mt-1" />
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 justify-end lg:col-span-1">
+                            <input type="hidden" name="use_max_stock" value="1" />
+                            <a href="{{ route('prediksi.index') }}" class="inline-flex items-center px-3 py-2 bg-gray-100 border border-transparent rounded-md text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">Reset</a>
+                        </div>
                     </form>
 
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
-                            const sel = document.getElementById('period_days');
-                            sel && sel.addEventListener('change', function () {
-                                // tambahkan parameter use_max_stock=1 agar controller tetap tahu batas diterapkan
-                                const form = document.getElementById('form-prediksi');
-                                const hidden = document.createElement('input');
-                                hidden.type = 'hidden';
-                                hidden.name = 'use_max_stock';
-                                hidden.value = '1';
-                                form.appendChild(hidden);
-                                form.submit();
-                            });
+                            const form = document.getElementById('form-prediksi');
+                            const period = document.getElementById('period_days');
+                            const search = document.getElementById('search');
+
+                            if (period) {
+                                period.addEventListener('change', () => form.submit());
+                            }
+
+                            if (search) {
+                                let t;
+                                search.addEventListener('input', () => {
+                                    clearTimeout(t);
+                                    t = setTimeout(() => form.submit(), 400);
+                                });
+                            }
                         });
                     </script>
 
@@ -51,11 +88,27 @@
                         <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Bahan</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok Terkini</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok Maksimum</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pemakaian ({{ $history_n }} Hari)</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Rekomendasi Pembelian (untuk {{ $replenish_days ?? 1 }} hari)</th>
+                                @php
+                                    $cols = [
+                                        ['key' => 'nama_bahan', 'label' => 'Nama Bahan'],
+                                        ['key' => 'stok_terkini', 'label' => 'Stok Terkini'],
+                                        ['key' => 'stok_maksimum', 'label' => 'Stok Maksimum'],
+                                        ['key' => 'total_pemakaian_history', 'label' => 'Total Pemakaian ('. $history_n .' Hari)'],
+                                        ['key' => 'prediksi_pembelian', 'label' => 'Rekomendasi Pembelian (untuk '. ($replenish_days ?? 1) .' hari)'],
+                                    ];
+                                @endphp
+                                @foreach ($cols as $col)
+                                    @php $icons = $sortIcons($col['key']); @endphp
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        <a href="{{ $sortLink($col['key']) }}" class="inline-flex items-center gap-1 group">
+                                            <span>{{ $col['label'] }}</span>
+                                            <span class="flex flex-col leading-none text-gray-300 group-hover:text-gray-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 {{ $icons['asc'] ? 'text-indigo-600' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 -mt-1 {{ $icons['desc'] ? 'text-indigo-600' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                            </span>
+                                        </a>
+                                    </th>
+                                @endforeach
                                 <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Satuan</th>
                             </tr>
                         </thead>

@@ -21,7 +21,6 @@
                     @endphp
 
                     <h3 class="text-lg font-medium mb-6">Selamat Datang, {{ Auth::user()->name }}!</h3>
-                    {{-- TAMPILAN KHUSUS ADMIN --}}
                     @if ($role == 'Admin')
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-lg">
@@ -62,24 +61,24 @@
                         </div>
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                            <div class="bg-white border border-gray-200 p-6 rounded-lg">
-                                <h4 class="font-bold text-lg mb-4 text-gray-800">Tren Pendapatan (7 Hari)</h4>
-                                <div style="position: relative; height: 300px;">
+                            <div class="bg-white border border-gray-200 p-4 sm:p-6 rounded-lg">
+                                <h4 class="font-bold text-base sm:text-lg mb-4 text-gray-800">Tren Pendapatan (7 Hari)</h4>
+                                <div class="relative w-full" style="height: 250px;">
                                     <canvas id="trenHarianChart"></canvas>
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-gray-200 p-6 rounded-lg">
-                                <h4 class="font-bold text-lg mb-4 text-gray-800">Tren Pendapatan (12 Bulan)</h4>
-                                <div style="position: relative; height: 300px;">
+                            <div class="bg-white border border-gray-200 p-4 sm:p-6 rounded-lg">
+                                <h4 class="font-bold text-base sm:text-lg mb-4 text-gray-800">Tren Pendapatan (12 Bulan)</h4>
+                                <div class="relative w-full" style="height: 250px;">
                                     <canvas id="trenBulananChart"></canvas>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bg-white border border-gray-200 p-6 rounded-lg">
-                            <h4 class="font-bold text-lg mb-4 text-gray-800">Menu Paling Laris (Bulan Ini)</h4>
-                            <div class="overflow-x-auto">
+                        <div class="bg-white border border-gray-200 p-4 sm:p-6 rounded-lg">
+                            <h4 class="font-bold text-base sm:text-lg mb-4 text-gray-800">Menu Paling Laris (Bulan Ini)</h4>
+                            <div class="overflow-x-auto -mx-4 sm:mx-0">
                                 <x-responsive-table>
                                 <table class="min-w-full border-collapse text-sm sm:text-base">
                                     <thead>
@@ -111,14 +110,13 @@
                             </div>
                         </div>
 
-                    {{-- TAMPILAN KHUSUS STAF DAPUR --}}
                     @elseif ($role == 'Staf Dapur')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             <div class="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
-                                <div class="flex items-center justify-between">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                     <h4 class="font-bold text-gray-800">Perhatian Stok</h4>
-                                    <span class="text-sm text-gray-500">Menampilkan maksimum 5 item</span>
+                                    <span class="text-xs sm:text-sm text-gray-500">Maksimum 5 item</span>
                                 </div>
 
                                 <div class="mt-4 space-y-4">
@@ -164,9 +162,9 @@
                             </div>
 
                             <div class="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
-                                <h4 class="font-bold">Pemakaian Bahan Terbanyak (7 Hari Terakhir)</h4>
-                                <div>
-                                    <canvas id="pemakaianChart" class="mt-4"></canvas>
+                                <h4 class="font-bold text-sm sm:text-base">Pemakaian Bahan Terbanyak (7 Hari)</h4>
+                                <div class="relative w-full mt-4" style="height: 220px;">
+                                    <canvas id="pemakaianChart"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -202,7 +200,7 @@
                                 pointBackgroundColor: 'rgba(34, 197, 94, 1)',
                                 pointBorderColor: '#fff',
                                 pointBorderWidth: 2,
-                                pointRadius: 5
+                                pointRadius: 3
                             }]
                         },
                         options: {
@@ -214,14 +212,19 @@
                                     ticks: {
                                         callback: function(value) {
                                             return 'Rp ' + value.toLocaleString('id-ID');
-                                        }
+                                        },
+                                        font: { size: 11 }
                                     }
+                                },
+                                x: {
+                                    ticks: { font: { size: 11 } }
                                 }
                             },
                             plugins: {
                                 legend: {
                                     display: true,
-                                    position: 'top'
+                                    position: 'top',
+                                    labels: { font: { size: 12 } }
                                 }
                             }
                         }
@@ -248,7 +251,7 @@
                                 pointBackgroundColor: 'rgba(59, 130, 246, 1)',
                                 pointBorderColor: '#fff',
                                 pointBorderWidth: 2,
-                                pointRadius: 4
+                                pointRadius: 2
                             }]
                         },
                         options: {
@@ -260,14 +263,19 @@
                                     ticks: {
                                         callback: function(value) {
                                             return 'Rp ' + value.toLocaleString('id-ID');
-                                        }
+                                        },
+                                        font: { size: 11 }
                                     }
+                                },
+                                x: {
+                                    ticks: { font: { size: 10 } }
                                 }
                             },
                             plugins: {
                                 legend: {
                                     display: true,
-                                    position: 'top'
+                                    position: 'top',
+                                    labels: { font: { size: 12 } }
                                 }
                             }
                         }
@@ -288,11 +296,11 @@
                                 label: 'Total Pemakaian',
                                 data: data,
                                 backgroundColor: [
-                                    'rgba(54, 162, 235, 0.2)', // Biru
-                                    'rgba(255, 99, 132, 0.2)', // Merah
-                                    'rgba(75, 192, 192, 0.2)', // Hijau
-                                    'rgba(255, 206, 86, 0.2)', // Kuning
-                                    'rgba(153, 102, 255, 0.2)' // Ungu
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(153, 102, 255, 0.2)'
                                 ],
                                 borderColor: [
                                     'rgba(54, 162, 235, 1)',
@@ -305,9 +313,15 @@
                             }]
                         },
                         options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
                             scales: {
                                 y: {
-                                    beginAtZero: true
+                                    beginAtZero: true,
+                                    ticks: { font: { size: 11 } }
+                                },
+                                x: {
+                                    ticks: { font: { size: 10 } }
                                 }
                             },
                             plugins: {

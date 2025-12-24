@@ -10,12 +10,38 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
             @if (session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
+                <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4" role="alert">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <p class="text-green-800 font-semibold">{{ session('success') }}</p>
+                    </div>
                 </div>
             @elseif (session('error'))
-                 <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
+                @php
+                    $raw = session('error');
+                    $parts = preg_split('/\\\\n/', $raw);
+                    $title = trim($parts[0] ?? 'Terjadi kesalahan');
+                    $items = collect($parts)->skip(1)->map(function($l){ return trim(ltrim($l, '- ')); })->filter()->values();
+                @endphp
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4" role="alert">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 text-red-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div class="flex-1">
+                            <p class="text-red-800 font-semibold">{{ $title }}</p>
+                            @if ($items->count())
+                                <ul class="mt-2 list-disc pl-5 text-red-700 text-sm space-y-1">
+                                    @foreach ($items as $line)
+                                        <li>{{ $line }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-red-700 text-sm mt-2">{!! nl2br(e(str_replace('\\n', "\n", $raw))) !!}</p>
+                            @endif
+                        </div>
+                        <button type="button" class="ml-3 text-red-400 hover:text-red-600" @click="$el.closest('.mb-4').remove()" aria-label="Tutup">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
                 </div>
             @endif
 
@@ -74,22 +100,29 @@
                         <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Dicatat Oleh</th>
                                     <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Menu</th>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Porsi</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Porsi</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Terakhir Dicatat</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($penjualanHarian as $penjualan)
                                     <tr>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $penjualan->user->name ?? 'N/A' }}</td>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $penjualan->menu->nama_menu }}</td>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($penjualan->jumlah_porsi, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">{{ $penjualan->menu->nama_menu }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($penjualan->total_porsi, 0, ',', '.') }} porsi</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($penjualan->last_recorded)->format('H:i') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                         </x-responsive-table>
+                        
+                        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-sm text-gray-700">
+                                <strong>Total penjualan hari ini:</strong> 
+                                {{ number_format($penjualanHarian->sum('total_porsi'), 0, ',', '.') }} porsi dari {{ $penjualanHarian->count() }} jenis menu
+                            </p>
+                        </div>
                     @endif
                 </div>
             </div>

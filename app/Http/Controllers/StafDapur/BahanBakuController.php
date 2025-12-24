@@ -34,6 +34,7 @@ class BahanBakuController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'stok_terkini' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:50',
+            'stok_maksimum' => 'nullable|numeric|min:0',
         ]);
 
         BahanBaku::create($request->all());
@@ -66,6 +67,7 @@ class BahanBakuController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'stok_terkini' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:50',
+            'stok_maksimum' => 'nullable|numeric|min:0',
         ]);
 
         $bahanBaku = BahanBaku::findOrFail($id);

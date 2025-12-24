@@ -21,9 +21,7 @@ class DashboardController extends Controller
         $role = Auth::user()->role->nama_role;
         $viewData = [];
 
-        // ----------------- DATA UNTUK ADMIN -----------------
         if ($role == 'Admin') {
-            // Ringkasan Finansial - Hari Ini
             $today = Carbon::today()->toDateString();
             $pendapatanHariIni = TransaksiPenjualan::with('menu')
                 ->whereDate('tanggal_penjualan', $today)
@@ -32,7 +30,6 @@ class DashboardController extends Controller
                     return $transaksi->jumlah_porsi * $transaksi->menu->harga;
                 });
 
-            // Ringkasan Finansial - Bulan Ini
             $bulanIni = Carbon::now()->startOfMonth();
             $bulanAkhir = Carbon::now()->endOfMonth();
             $pendapatanBulanIni = TransaksiPenjualan::with('menu')
@@ -42,11 +39,9 @@ class DashboardController extends Controller
                     return $transaksi->jumlah_porsi * $transaksi->menu->harga;
                 });
 
-            // Total Jumlah Transaksi (Bulan Ini)
             $jumlahTransaksiBulanIni = TransaksiPenjualan::whereBetween('tanggal_penjualan', [$bulanIni, $bulanAkhir])
                 ->count();
 
-            // Menu Paling Laris (Bulan Ini)
             $menuLaris = TransaksiPenjualan::with('menu')
                 ->whereBetween('tanggal_penjualan', [$bulanIni, $bulanAkhir])
                 ->select('menu_id', DB::raw('SUM(jumlah_porsi) as total_porsi'))
@@ -55,7 +50,6 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Tren Pendapatan - 7 Hari Terakhir
             $hariIni = Carbon::today();
             $tujuhHariYangLalu = $hariIni->copy()->subDays(6);
             
@@ -75,7 +69,6 @@ class DashboardController extends Controller
                 $trenLabels[] = Carbon::parse($tanggal)->format('d M');
             }
 
-            // Tren Pendapatan - 12 Bulan Terakhir
             $trenBulanan = [];
             $trenBulanLabels = [];
             
@@ -103,10 +96,7 @@ class DashboardController extends Controller
             $viewData['trenBulanLabels'] = $trenBulanLabels;
             $viewData['trenBulanData'] = $trenBulanan;
         
-        // ----------------- DATA UNTUK STAF DAPUR -----------------
         } elseif ($role == 'Staf Dapur') {
-            // Hitung stok kritis per-item. Jika tersedia, gunakan 20% dari stok_maksimum
-            // sebagai ambang kritis. Jika stok_maksimum null, fallback ke 10.
             $bahanAll = BahanBaku::orderBy('stok_terkini', 'asc')->get();
 
             $stokKritis = $bahanAll->filter(function ($bahan) {
@@ -119,7 +109,6 @@ class DashboardController extends Controller
                     $threshold = 10;
                 }
 
-                // Pasang data tambahan untuk digunakan di view
                 $bahan->critical_threshold = $threshold;
                 $bahan->critical_percent = $bahan->stok_maksimum ? round(($stokNow / $bahan->stok_maksimum) * 100, 0) : null;
 

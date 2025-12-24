@@ -68,12 +68,10 @@ class ResepController extends Controller
             'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // 2. Update jumlah pada resep yang spesifik
         $resep->update([
             'jumlah_dibutuhkan' => $request->jumlah_dibutuhkan,
         ]);
 
-        // 3. Arahkan kembali dengan pesan sukses
         return back()->with('success', 'Jumlah bahan dalam resep berhasil diperbarui.');
     }
 
