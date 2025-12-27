@@ -16,12 +16,31 @@ class StokController extends Controller
     {
         $bahanBakus = BahanBaku::orderBy('nama_bahan')->get();
         $selectedDate = $request->input('tanggal', Carbon::today()->toDateString());
-        $stokMasukHarian = TransaksiStok::with(['bahanBaku', 'user'])
+
+        $search = trim((string) $request->input('search', ''));
+        $allowedSort = ['nama_bahan', 'total_masuk', 'last_recorded'];
+        $sort_by = in_array($request->input('sort_by'), $allowedSort, true) ? $request->input('sort_by') : 'last_recorded';
+        $sort_dir = strtolower($request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $orderColumn = $sort_by === 'nama_bahan' ? 'bahan_bakus.nama_bahan' : $sort_by;
+
+        $stokMasukHarian = TransaksiStok::selectRaw(
+                'transaksi_stoks.bahan_baku_id, '
+                . 'SUM(transaksi_stoks.jumlah_masuk) as total_masuk, '
+                . 'MAX(transaksi_stoks.created_at) as last_recorded, '
+                . 'bahan_bakus.nama_bahan as nama_bahan, '
+                . 'bahan_bakus.satuan as satuan'
+            )
+            ->join('bahan_bakus', 'transaksi_stoks.bahan_baku_id', '=', 'bahan_bakus.id')
             ->whereDate('tanggal_masuk', $selectedDate)
-            ->orderBy('created_at', 'desc')
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where('bahan_bakus.nama_bahan', 'like', "%{$search}%");
+            })
+            ->groupBy('transaksi_stoks.bahan_baku_id', 'bahan_bakus.nama_bahan', 'bahan_bakus.satuan')
+            ->orderBy($orderColumn, $sort_dir)
             ->get();
 
-        return view('staf.stok.index', compact('bahanBakus', 'selectedDate', 'stokMasukHarian'));
+        return view('staf.stok.index', compact('bahanBakus', 'selectedDate', 'stokMasukHarian', 'search', 'sort_by', 'sort_dir'));
     }
 
     public function store(Request $request)

@@ -11,10 +11,24 @@ class MenuController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $menus = Menu::latest()->get();
-        return view('admin.menu.index', compact('menus'));
+        $search = trim($request->input('search', ''));
+        $sortBy = $request->input('sort_by', 'nama_menu');
+        $sortDir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $validSorts = ['nama_menu', 'harga'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'nama_menu';
+        }
+
+        $query = Menu::query();
+        if ($search !== '') {
+            $query->where('nama_menu', 'like', "%$search%");
+        }
+
+        $menus = $query->orderBy($sortBy, $sortDir)->get();
+        return view('admin.menu.index', compact('menus', 'search', 'sortBy', 'sortDir'));
     }
 
     /**

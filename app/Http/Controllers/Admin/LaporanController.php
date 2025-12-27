@@ -18,10 +18,12 @@ class LaporanController extends Controller
     {
         $tanggalAkhir = $request->input('tanggal_akhir', Carbon::today()->toDateString());
         $tanggalMulai = $request->input('tanggal_mulai', Carbon::today()->subDays(29)->toDateString());
-        
         $jenisLaporan = $request->input('jenis_laporan', 'penjualan');
+        $search = trim($request->input('search', ''));
+        $sortBy = $request->input('sort_by', $jenisLaporan === 'penjualan' ? 'total' : 'total');
+        $sortDir = strtolower($request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $dataLaporan = [];
+        $dataLaporan = collect();
         $kolomTabel = [];
 
         if ($jenisLaporan == 'penjualan') {
@@ -37,30 +39,62 @@ class LaporanController extends Controller
                 ->map(function ($menu) use ($agregat) {
                     $row = new \stdClass();
                     $row->menu = $menu;
-                    $row->total_porsi = (int) ($agregat[$menu->id] ?? 0);
+                    $row->total = (int) ($agregat[$menu->id] ?? 0);
                     return $row;
-                })
-                ->sortByDesc('total_porsi')
-                ->values();
+                });
+
+            if ($search !== '') {
+                $dataLaporan = $dataLaporan->filter(function ($r) use ($search) {
+                    return stripos($r->menu->nama_menu, $search) !== false;
+                });
+            }
+
+            $dataLaporan = ($sortBy === 'nama')
+                ? ($sortDir === 'asc' ? $dataLaporan->sortBy(fn($r) => strtolower($r->menu->nama_menu)) : $dataLaporan->sortByDesc(fn($r) => strtolower($r->menu->nama_menu)))
+                : ($sortDir === 'asc' ? $dataLaporan->sortBy('total') : $dataLaporan->sortByDesc('total'));
+
+            $dataLaporan = $dataLaporan->values();
 
         } elseif ($jenisLaporan == 'stok_masuk') {
             $kolomTabel = ['Nama Bahan Baku', 'Total Masuk', 'Satuan'];
 
             $dataLaporan = TransaksiStok::with('bahanBaku')
                 ->whereBetween('tanggal_masuk', [$tanggalMulai, $tanggalAkhir])
-                ->select('bahan_baku_id', DB::raw('SUM(jumlah_masuk) as total_masuk'))
+                ->select('bahan_baku_id', DB::raw('SUM(jumlah_masuk) as total'))
                 ->groupBy('bahan_baku_id')
-                ->orderBy('total_masuk', 'desc')
                 ->get();
+
+            if ($search !== '') {
+                $dataLaporan = $dataLaporan->filter(function ($r) use ($search) {
+                    return $r->bahanBaku && stripos($r->bahanBaku->nama_bahan, $search) !== false;
+                });
+            }
+
+            $dataLaporan = ($sortBy === 'nama')
+                ? ($sortDir === 'asc' ? $dataLaporan->sortBy(fn($r) => strtolower(optional($r->bahanBaku)->nama_bahan)) : $dataLaporan->sortByDesc(fn($r) => strtolower(optional($r->bahanBaku)->nama_bahan)))
+                : ($sortDir === 'asc' ? $dataLaporan->sortBy('total') : $dataLaporan->sortByDesc('total'));
+
+            $dataLaporan = $dataLaporan->values();
 
         } elseif ($jenisLaporan == 'pemakaian') {
             $kolomTabel = ['Nama Bahan Baku', 'Total Pemakaian', 'Satuan'];
             $dataLaporan = PemakaianHarian::with('bahanBaku')
                 ->whereBetween('tanggal', [$tanggalMulai, $tanggalAkhir])
-                ->select('bahan_baku_id', DB::raw('SUM(jumlah_terpakai) as total_terpakai'))
+                ->select('bahan_baku_id', DB::raw('SUM(jumlah_terpakai) as total'))
                 ->groupBy('bahan_baku_id')
-                ->orderBy('total_terpakai', 'desc')
                 ->get();
+
+            if ($search !== '') {
+                $dataLaporan = $dataLaporan->filter(function ($r) use ($search) {
+                    return $r->bahanBaku && stripos($r->bahanBaku->nama_bahan, $search) !== false;
+                });
+            }
+
+            $dataLaporan = ($sortBy === 'nama')
+                ? ($sortDir === 'asc' ? $dataLaporan->sortBy(fn($r) => strtolower(optional($r->bahanBaku)->nama_bahan)) : $dataLaporan->sortByDesc(fn($r) => strtolower(optional($r->bahanBaku)->nama_bahan)))
+                : ($sortDir === 'asc' ? $dataLaporan->sortBy('total') : $dataLaporan->sortByDesc('total'));
+
+            $dataLaporan = $dataLaporan->values();
         }
 
         return view('admin.laporan.index', compact(
@@ -68,7 +102,10 @@ class LaporanController extends Controller
             'jenisLaporan', 
             'tanggalMulai', 
             'tanggalAkhir',
-            'kolomTabel'
+            'kolomTabel',
+            'search',
+            'sortBy',
+            'sortDir'
         ));
     }
 

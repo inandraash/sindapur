@@ -11,10 +11,28 @@ class BahanBakuController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bahanBakus = BahanBaku::latest()->get();
-        return view('staf.bahan-baku.index', compact('bahanBakus'));
+        $search = trim($request->input('search', ''));
+        $sortBy = $request->input('sort_by', 'nama_bahan');
+        $sortDir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $validSorts = ['nama_bahan', 'stok_terkini', 'satuan'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'nama_bahan';
+        }
+
+        $query = BahanBaku::query();
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_bahan', 'like', "%$search%")
+                  ->orWhere('satuan', 'like', "%$search%");
+            });
+        }
+
+        $bahanBakus = $query->orderBy($sortBy, $sortDir)->get();
+
+        return view('staf.bahan-baku.index', compact('bahanBakus', 'search', 'sortBy', 'sortDir'));
     }
 
     /**

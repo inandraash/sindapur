@@ -1,4 +1,2 @@
-import axios from 'axios';
-window.axios = axios;
-
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+// Alpine.js handles all frontend interactions
+// No axios needed - all forms use traditional server-side submission

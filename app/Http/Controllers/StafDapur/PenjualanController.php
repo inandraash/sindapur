@@ -18,15 +18,29 @@ class PenjualanController extends Controller
     {
         $menus = Menu::where('harga', '>', 0)->with('reseps.bahanBaku')->orderBy('nama_menu')->get();
         $selectedDate = $request->input('tanggal', Carbon::today()->toDateString());
-        
-        $penjualanHarian = TransaksiPenjualan::selectRaw('menu_id, SUM(jumlah_porsi) as total_porsi, MAX(created_at) as last_recorded')
+
+        $search = trim((string) $request->input('search', ''));
+        $allowedSort = ['menu_name', 'total_porsi', 'last_recorded'];
+        $sort_by = in_array($request->input('sort_by'), $allowedSort, true) ? $request->input('sort_by') : 'last_recorded';
+        $sort_dir = strtolower($request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $orderColumn = $sort_by === 'menu_name' ? 'menus.nama_menu' : $sort_by;
+
+        $penjualanHarian = TransaksiPenjualan::selectRaw(
+                'transaksi_penjualans.menu_id, '
+                . 'SUM(transaksi_penjualans.jumlah_porsi) as total_porsi, '
+                . 'MAX(transaksi_penjualans.created_at) as last_recorded, '
+                . 'menus.nama_menu as menu_name'
+            )
+            ->join('menus', 'transaksi_penjualans.menu_id', '=', 'menus.id')
             ->whereDate('tanggal_penjualan', $selectedDate)
-            ->groupBy('menu_id')
-            ->with('menu')
-            ->orderBy('last_recorded', 'desc')
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where('menus.nama_menu', 'like', "%{$search}%");
+            })
+            ->groupBy('transaksi_penjualans.menu_id', 'menus.nama_menu')
+            ->orderBy($orderColumn, $sort_dir)
             ->get();
         
-        return view('staf.penjualan.index', compact('menus', 'selectedDate', 'penjualanHarian'));
+        return view('staf.penjualan.index', compact('menus', 'selectedDate', 'penjualanHarian', 'search', 'sort_by', 'sort_dir'));
     }
 
     public function store(Request $request)

@@ -11,19 +11,87 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 animate-slideUp">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300">
                 <div class="p-6 text-gray-900">
-                    <button @click="addModalOpen = true" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
-                        Tambah Bahan Baku Baru
-                    </button>
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                        <button @click="addModalOpen = true" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
+                            Tambah Bahan Baku Baru
+                        </button>
+                        <form id="filter-form" method="GET" action="{{ route('staf.bahan-baku.index') }}" class="flex items-end gap-3">
+                            <div>
+                                <x-input-label for="search" value="Cari" />
+                                <x-text-input id="search" type="text" name="search" value="{{ $search ?? '' }}" class="py-1" placeholder="Nama/Satuan" />
+                            </div>
+                            <input type="hidden" name="sort_by" value="{{ $sortBy ?? 'nama_bahan' }}" />
+                            <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'asc' }}" />
+                        </form>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const form = document.getElementById('filter-form');
+                            const input = document.getElementById('search');
+                            let t;
+                            input.addEventListener('input', () => {
+                                clearTimeout(t);
+                                t = setTimeout(() => form.submit(), 300);
+                            });
+                        });
+                    </script>
 
                     <!-- Desktop/Tablet table -->
                     <div class="hidden md:block">
                     <x-responsive-table>
                     <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
+                            @php
+                                $baseQuery = request()->except(['sort_by','sort_dir']);
+                                $sort_by = request()->input('sort_by', 'nama_bahan');
+                                $sort_dir = request()->input('sort_dir', 'asc');
+                                $sortIcons = function($col) use ($sort_by, $sort_dir) {
+                                    $isActive = $sort_by === $col;
+                                    return [
+                                        'asc' => $isActive && $sort_dir === 'asc',
+                                        'desc' => $isActive && $sort_dir === 'desc',
+                                    ];
+                                };
+                                $sortLink = function($col) use ($baseQuery, $sort_by, $sort_dir) {
+                                    $isActive = $sort_by === $col;
+                                    $nextDir = ($isActive && $sort_dir === 'asc') ? 'desc' : 'asc';
+                                    return route('staf.bahan-baku.index', array_merge($baseQuery, [
+                                        'sort_by' => $col,
+                                        'sort_dir' => $nextDir,
+                                    ]));
+                                };
+                            @endphp
                             <tr>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3">Nama Bahan</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3">Stok Terkini</th>
-                                <th class="px-3 sm:px-6 py-2 sm:py-3">Satuan</th>
+                                @php $icons = $sortIcons('nama_bahan'); @endphp
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">
+                                    <a href="{{ $sortLink('nama_bahan') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                        <span class="font-semibold">Nama Bahan</span>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        </span>
+                                    </a>
+                                </th>
+                                @php $icons = $sortIcons('stok_terkini'); @endphp
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">
+                                    <a href="{{ $sortLink('stok_terkini') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                        <span class="font-semibold">Stok Terkini</span>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        </span>
+                                    </a>
+                                </th>
+                                @php $icons = $sortIcons('satuan'); @endphp
+                                <th class="px-3 sm:px-6 py-2 sm:py-3">
+                                    <a href="{{ $sortLink('satuan') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                        <span class="font-semibold">Satuan</span>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        </span>
+                                    </a>
+                                </th>
                                 <th class="relative px-3 sm:px-6 py-2 sm:py-3"></th>
                             </tr>
                         </thead>
@@ -46,6 +114,31 @@
 
                     <!-- Mobile stacked cards -->
                     <div class="md:hidden mt-6 space-y-3">
+                        <div class="flex items-end gap-2">
+                            <form id="m-sort-form-bahan" method="GET" action="{{ route('staf.bahan-baku.index') }}" class="flex items-end gap-2">
+                                <input type="hidden" name="search" value="{{ $search ?? '' }}" />
+                                <div>
+                                    <x-input-label for="sort_by_m" value="Urut" />
+                                    <select id="sort_by_m" name="sort_by" class="border-gray-300 rounded-md shadow-sm py-1">
+                                        <option value="nama_bahan" @selected(($sortBy ?? '')==='nama_bahan')>Nama</option>
+                                        <option value="stok_terkini" @selected(($sortBy ?? '')==='stok_terkini')>Stok</option>
+                                        <option value="satuan" @selected(($sortBy ?? '')==='satuan')>Satuan</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'asc' }}" />
+                                <x-primary-button class="ml-1">Terapkan</x-primary-button>
+                            </form>
+                            <a href="{{ route('staf.bahan-baku.index', ['search' => $search ?? null, 'sort_by' => $sortBy ?? 'nama_bahan', 'sort_dir' => ($sortDir ?? 'asc')==='asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-xs">
+                                Arah: {{ ($sortDir ?? 'asc')==='asc' ? 'Naik' : 'Turun' }}
+                            </a>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                const form = document.getElementById('m-sort-form-bahan');
+                                const select = document.getElementById('sort_by_m');
+                                select && select.addEventListener('change', () => form.submit());
+                            });
+                        </script>
                         @foreach ($bahanBakus as $bahan)
                             <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
                                 <div class="flex items-start justify-between gap-3">

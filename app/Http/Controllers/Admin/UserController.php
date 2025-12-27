@@ -14,11 +14,36 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->get();
+        $search = trim($request->input('search', ''));
+        $sortBy = $request->input('sort_by', 'name');
+        $sortDir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $validSorts = ['name', 'username', 'role'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'name';
+        }
+
+        $query = User::with('role');
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('username', 'like', "%$search%");
+            });
+        }
+
+        if ($sortBy === 'role') {
+            $query->join('roles', 'users.role_id', '=', 'roles.id')
+                  ->select('users.*')
+                  ->orderBy('roles.nama_role', $sortDir);
+        } else {
+            $query->orderBy($sortBy, $sortDir);
+        }
+
+        $users = $query->get();
         $roles = Role::all();
-        return view('admin.pengguna.index', compact('users', 'roles'));
+        return view('admin.pengguna.index', compact('users', 'roles', 'search', 'sortBy', 'sortDir'));
     }
 
     /**

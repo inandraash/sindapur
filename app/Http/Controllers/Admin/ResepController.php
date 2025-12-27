@@ -13,11 +13,41 @@ class ResepController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Menu $menu)
+    public function index(Request $request, Menu $menu)
     {
-        $bahanBakus = BahanBaku::orderby('nama_bahan')->get();
-        $reseps = $menu->reseps()->with('bahanBaku')->get();
-        return view('admin.resep.index', compact('bahanBakus', 'reseps', 'menu'));
+        $search = trim($request->input('search', ''));
+        $sortBy = $request->input('sort_by', 'nama_bahan');
+        $sortDir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $validSorts = ['nama_bahan', 'jumlah_dibutuhkan', 'satuan'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'nama_bahan';
+        }
+
+        $bahanBakus = BahanBaku::orderBy('nama_bahan')->get();
+        $resepsQuery = $menu->reseps()->with('bahanBaku');
+
+        if ($search !== '') {
+            $resepsQuery->whereHas('bahanBaku', function ($q) use ($search) {
+                $q->where('nama_bahan', 'like', "%$search%")
+                  ->orWhere('satuan', 'like', "%$search%");
+            });
+        }
+
+        if ($sortBy === 'nama_bahan') {
+            $resepsQuery->join('bahan_bakus', 'reseps.bahan_baku_id', '=', 'bahan_bakus.id')
+                ->select('reseps.*')
+                ->orderBy('bahan_bakus.nama_bahan', $sortDir);
+        } elseif ($sortBy === 'satuan') {
+            $resepsQuery->join('bahan_bakus', 'reseps.bahan_baku_id', '=', 'bahan_bakus.id')
+                ->select('reseps.*')
+                ->orderBy('bahan_bakus.satuan', $sortDir);
+        } else {
+            $resepsQuery->orderBy('jumlah_dibutuhkan', $sortDir);
+        }
+
+        $reseps = $resepsQuery->get();
+        return view('admin.resep.index', compact('bahanBakus', 'reseps', 'menu', 'search', 'sortBy', 'sortDir'));
     }
 
     /**
