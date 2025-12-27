@@ -66,7 +66,7 @@
                     @else
                         <td>{{ \Carbon\Carbon::parse($data->tanggal)->format('d/m/Y') }}</td>
                         <td>{{ $data->bahanBaku->nama_bahan }}</td>
-                        <td class="text-center">{{ number_format($data->jumlah_terpakai, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format($data->jumlah_terpakai, 2, ',', '.') }}</td>
                         <td class="text-center">{{ $data->bahanBaku->satuan }}</td>
                     @endif
                 </tr>

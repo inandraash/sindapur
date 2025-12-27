@@ -44,6 +44,8 @@
 
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Daftar Bahan Saat Ini</h2>
+                    <!-- Desktop/Tablet table -->
+                    <div class="hidden md:block">
                     <x-responsive-table>
                 <table class="min-w-full divide-y divide-gray-200 text-sm sm:text-base">
                     <thead class="bg-gray-50">
@@ -56,15 +58,15 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($reseps as $resep)
-                                <tr>
+                                <tr class="hover:bg-orange-50 transition-colors duration-200">
                                 <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->bahanBaku->nama_bahan }}</td>
                                 <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->jumlah_dibutuhkan }}</td>
                                 <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $resep->bahanBaku->satuan }}</td>
                                 <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
-                                    <button @click="editingResep = {{ $resep->load('bahanBaku')->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                                    <button @click="editingResep = {{ $resep->load('bahanBaku')->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 hover:underline mr-4 transition duration-200">
                                         Edit
                                     </button>
-                                    <button @click="deletingResep = {{ $resep->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900">
+                                    <button @click="deletingResep = {{ $resep->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 hover:underline transition duration-200">
                                         Hapus
                                     </button>
                                 </td>
@@ -79,6 +81,31 @@
                     </tbody>
                 </table>
                 </x-responsive-table>
+                    </div>
+
+                    <!-- Mobile stacked cards -->
+                    <div class="md:hidden space-y-3">
+                        @forelse ($reseps as $resep)
+                            <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $resep->bahanBaku->nama_bahan }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $resep->bahanBaku->satuan }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-500">Jumlah</p>
+                                        <p class="text-sm font-semibold">{{ $resep->jumlah_dibutuhkan }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center justify-end gap-3">
+                                    <button @click="editingResep = {{ $resep->load('bahanBaku')->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</button>
+                                    <button @click="deletingResep = {{ $resep->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-800 hover:underline text-sm transition duration-200">Hapus</button>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500 text-center">Belum ada bahan yang ditambahkan ke resep ini.</p>
+                        @endforelse
+                    </div>
             </div>
         </div>
 

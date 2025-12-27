@@ -28,7 +28,7 @@ class ResepSeeder extends Seeder
             ['bahan_baku_id' => $bahanBakus['Orek Tempe (Matang)'], 'jumlah_dibutuhkan' => 0.05],
             ['bahan_baku_id' => $bahanBakus['Sambal Terasi'], 'jumlah_dibutuhkan' => 0.02],
             ['bahan_baku_id' => $bahanBakus['Kerupuk Udang'], 'jumlah_dibutuhkan' => 1],
-            ['bahan_baku_id' => $bahanBakus['Bawang Goreng'], 'jumlah_dibutuhkan' => 0.003],
+            ['bahan_baku_id' => $bahanBakus['Bawang Goreng'], 'jumlah_dibutuhkan' => 0.01],
             ['bahan_baku_id' => $bahanBakus['Minyak Goreng'], 'jumlah_dibutuhkan' => 0.01],
         ]);
         
@@ -52,7 +52,7 @@ class ResepSeeder extends Seeder
             ['bahan_baku_id' => $bahanBakus['Daging Ayam'], 'jumlah_dibutuhkan' => 0.07],
             ['bahan_baku_id' => $bahanBakus['Bumbu Dasar Soto'], 'jumlah_dibutuhkan' => 0.03],
             ['bahan_baku_id' => $bahanBakus['Telur Ayam'], 'jumlah_dibutuhkan' => 0.5],
-            ['bahan_baku_id' => $bahanBakus['Bawang Goreng'], 'jumlah_dibutuhkan' => 0.005],
+            ['bahan_baku_id' => $bahanBakus['Bawang Goreng'], 'jumlah_dibutuhkan' => 0.01],
             ['bahan_baku_id' => $bahanBakus['Minyak Goreng'], 'jumlah_dibutuhkan' => 0.02],
             ['bahan_baku_id' => $bahanBakus['Beras'], 'jumlah_dibutuhkan' => 0.15],
         ]);

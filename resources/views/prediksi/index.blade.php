@@ -83,7 +83,8 @@
                         });
                     </script>
 
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                    <!-- Desktop/Tablet table -->
+                    <div class="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
                         <x-responsive-table>
                         <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                         <thead class="bg-gray-50">
@@ -100,11 +101,11 @@
                                 @foreach ($cols as $col)
                                     @php $icons = $sortIcons($col['key']); @endphp
                                     <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        <a href="{{ $sortLink($col['key']) }}" class="inline-flex items-center gap-1 group">
-                                            <span>{{ $col['label'] }}</span>
-                                            <span class="flex flex-col leading-none text-gray-300 group-hover:text-gray-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 {{ $icons['asc'] ? 'text-indigo-600' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 -mt-1 {{ $icons['desc'] ? 'text-indigo-600' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        <a href="{{ $sortLink($col['key']) }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                            <span class="font-semibold">{{ $col['label'] }}</span>
+                                            <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
                                             </span>
                                         </a>
                                     </th>
@@ -114,7 +115,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($rekomendasi as $item)
-                                <tr>
+                                <tr class="hover:bg-sky-50 transition-colors duration-200">
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $item['nama_bahan'] }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                         {{ number_format($item['stok_terkini'], 0, ',', '.') }}
@@ -140,6 +141,57 @@
                         </tbody>
                         </table>
                         </x-responsive-table>
+                    </div>
+
+                    <!-- Mobile sort controls -->
+                    <div class="md:hidden mb-3">
+                        <form action="{{ route('prediksi.index') }}" method="GET" class="flex flex-wrap items-center gap-2">
+                            <input type="hidden" name="replenish_days" value="{{ $replenish_days }}" />
+                            <input type="hidden" name="search" value="{{ $search }}" />
+                            <input type="hidden" name="use_max_stock" value="{{ $use_max ? 1 : 0 }}" />
+                            <input type="hidden" name="sort_dir" value="{{ $sort_dir }}" />
+
+                            <label class="text-xs text-gray-600" for="mobile_sort">Urutkan:</label>
+                            <select id="mobile_sort" name="sort_by" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
+                                @foreach ($cols as $col)
+                                    <option value="{{ $col['key'] }}" @selected(($sort_by ?? 'nama_bahan') === $col['key'])>{{ $col['label'] }}</option>
+                                @endforeach
+                            </select>
+
+                            <button type="submit" name="sort_dir" value="{{ ($sort_dir ?? 'asc') === 'asc' ? 'desc' : 'asc' }}" class="inline-flex items-center px-2 py-1 text-xs border rounded hover:bg-gray-100 transition">
+                                <span class="mr-1">Arah</span>
+                                @if (($sort_dir ?? 'asc') === 'asc')
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Mobile stacked cards -->
+                    <div class="md:hidden space-y-3">
+                        @forelse ($rekomendasi as $item)
+                            <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $item['nama_bahan'] }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $item['satuan'] }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-500">Rekomendasi</p>
+                                        <p class="text-sm font-semibold">{{ number_format($item['prediksi_pembelian'], 0, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                    <div>Stok: <span class="font-medium">{{ number_format($item['stok_terkini'], 0, ',', '.') }}</span></div>
+                                    <div>Maksimum: <span class="font-medium">{{ isset($item['stok_maksimum']) ? number_format($item['stok_maksimum'], 0, ',', '.') : '-' }}</span></div>
+                                    <div class="col-span-2">Pemakaian {{ $history_n }} hari: <span class="font-medium">{{ number_format($item['total_pemakaian_history'], 0, ',', '.') }}</span></div>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500 text-center">Data pemakaian historis belum cukup untuk membuat prediksi.</p>
+                        @endforelse
                     </div>
 
                 </div>

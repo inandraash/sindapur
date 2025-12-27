@@ -8,7 +8,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6 animate-slideUp">
             @if (session('success'))
                 <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4" role="alert">
                     <div class="flex items-start">
@@ -45,9 +45,9 @@
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300">
                 <div class="p-6 md:p-8 text-gray-900">
-                    <header>
+                    <header class="animate-fadeIn">
                         <h2 class="text-lg font-medium text-gray-900">
                             Input Jumlah Porsi Terjual
                         </h2>
@@ -83,8 +83,8 @@
                 </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 md:p-8 text-gray-900">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300" style="animation-delay: 0.1s">
+                <div class="p-6 md:p-8 text-gray-900 animate-slideUp">
                     <h3 class="text-lg font-medium mb-4">Rekap Penjualan Tercatat</h3>
 
                     <form method="GET" action="{{ route('staf.penjualan.index') }}" class="mb-4 flex items-center space-x-2">
@@ -96,6 +96,7 @@
                     @if($penjualanHarian->isEmpty())
                         <p class="text-center text-gray-500 mt-4">Belum ada data penjualan yang tercatat untuk tanggal {{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d F Y') }}.</p>
                     @else
+                        <div class="hidden md:block">
                         <x-responsive-table>
                         <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                             <thead class="bg-gray-50">
@@ -107,7 +108,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($penjualanHarian as $penjualan)
-                                    <tr>
+                                    <tr class="hover:bg-indigo-50 transition-colors duration-200">
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">{{ $penjualan->menu->nama_menu }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($penjualan->total_porsi, 0, ',', '.') }} porsi</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($penjualan->last_recorded)->format('H:i') }}</td>
@@ -116,7 +117,24 @@
                             </tbody>
                         </table>
                         </x-responsive-table>
-                        
+                        </div>
+
+                        <div class="md:hidden space-y-3">
+                            @foreach ($penjualanHarian as $penjualan)
+                                <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-medium text-gray-800">{{ $penjualan->menu->nama_menu }}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">Terakhir dicatat: {{ \Carbon\Carbon::parse($penjualan->last_recorded)->format('H:i') }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xs text-gray-500">Porsi</p>
+                                            <p class="text-sm font-semibold">{{ number_format($penjualan->total_porsi, 0, ',', '.') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <p class="text-sm text-gray-700">
                                 <strong>Total penjualan hari ini:</strong> 

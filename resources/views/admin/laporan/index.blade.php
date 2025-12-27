@@ -62,6 +62,8 @@
                         </span>
                     </h3>
 
+                    <!-- Desktop/Tablet table -->
+                    <div class="hidden md:block">
                     <x-responsive-table>
                     <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                         <thead class="bg-gray-50">
@@ -73,7 +75,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($dataLaporan as $data)
-                                <tr>
+                                <tr class="hover:bg-yellow-50 transition-colors duration-200">
                                     @if($jenisLaporan == 'penjualan')
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->menu->nama_menu }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_porsi, 0, ',', '.') }}</td>
@@ -83,7 +85,7 @@
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->satuan }}</td>
                                     @else
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->nama_bahan }}</td>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_terpakai, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total_terpakai, 2, ',', '.') }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->satuan }}</td>
                                     @endif
                                 </tr>
@@ -97,6 +99,39 @@
                         </tbody>
                     </table>
                     </x-responsive-table>
+                    </div>
+
+                    <!-- Mobile stacked cards -->
+                    <div class="md:hidden space-y-3">
+                        @forelse ($dataLaporan as $data)
+                            <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                @if($jenisLaporan == 'penjualan')
+                                    <div class="flex items-start justify-between gap-3">
+                                        <p class="font-medium text-gray-800">{{ $data->menu->nama_menu }}</p>
+                                        <p class="text-sm font-semibold">{{ number_format($data->total_porsi, 0, ',', '.') }} porsi</p>
+                                    </div>
+                                @elseif($jenisLaporan == 'stok_masuk')
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-medium text-gray-800">{{ $data->bahanBaku->nama_bahan }}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $data->bahanBaku->satuan }}</p>
+                                        </div>
+                                        <p class="text-sm font-semibold">{{ number_format($data->total_masuk, 0, ',', '.') }}</p>
+                                    </div>
+                                @else
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-medium text-gray-800">{{ $data->bahanBaku->nama_bahan }}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $data->bahanBaku->satuan }}</p>
+                                        </div>
+                                        <p class="text-sm font-semibold">{{ number_format($data->total_terpakai, 2, ',', '.') }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500 text-center">Tidak ada data untuk rentang tanggal dan jenis laporan ini.</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>

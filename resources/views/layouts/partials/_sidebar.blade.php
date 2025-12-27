@@ -3,9 +3,9 @@
     :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
     x-cloak
 >
-    <div class="flex justify-center items-center mb-6">
+    <div class="flex justify-center items-center mb-6 hover:opacity-80 transition duration-200">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-            <img src="{{ asset('images/logo_2.png') }}" alt="SINDAPUR" class="h-24 object-contain" />
+            <img src="{{ asset('images/logo_2.png') }}" alt="SINDAPUR" class="h-20 sm:h-24 object-contain hover:scale-105 transition-transform duration-200" />
         </a>
     </div>
 
@@ -78,7 +78,7 @@
                     @php $active = request()->routeIs(...$item['match']); @endphp
                     <li>
                         <a href="{{ route($item['route']) }}"
-                           class="flex items-center gap-3 px-3 py-2 rounded-md transition duration-150 ease-out
+                           class="flex items-center gap-3 px-3 py-2 rounded-md transition duration-150 ease-out hover:translate-x-1
                            {{ $active ? 'bg-indigo-50 text-indigo-700 font-semibold border-l-4 border-indigo-500' : 'text-gray-200 hover:bg-gray-800 hover:text-white' }}">
                             <svg class="h-5 w-5 {{ $active ? 'text-indigo-600' : 'text-gray-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 {!! $item['icon'] !!}

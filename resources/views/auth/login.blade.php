@@ -1,10 +1,10 @@
 <x-guest-layout>
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}" class="space-y-5">
+    <form method="POST" action="{{ route('login') }}" class="space-y-6 animate-slideUp">
         @csrf
         
-        <div class="mb-6 text-center">
+        <div class="mb-6 text-center animate-fadeIn">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Masuk SINDAPUR</h1>
             <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Kelola bahan baku dengan mudah</p>
         </div>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="flex items-center justify-center mt-6">
-            <x-primary-button class="w-full justify-center py-3">
+            <x-primary-button class="w-full justify-center py-3 hover:scale-105 transition-all duration-200 shadow-md shadow-indigo-100">
                 {{ __('Masuk') }}
             </x-primary-button>
         </div>

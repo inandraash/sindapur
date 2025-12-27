@@ -8,7 +8,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6 animate-slideUp">
 
             {{-- Notifikasi --}}
             @if (session('success'))
@@ -22,9 +22,9 @@
             @endif
 
             {{-- Form Input Stok Masuk --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300">
                 <div class="p-6 md:p-8 text-gray-900">
-                    <header>
+                    <header class="animate-fadeIn">
                         <h2 class="text-lg font-medium text-gray-900">Input Bahan Baku Masuk</h2>
                         <p class="mt-1 text-sm text-gray-600">Catat bahan baku yang baru dibeli atau diterima. Stok akan otomatis bertambah.</p>
                     </header>
@@ -65,8 +65,8 @@
             </div>
 
             {{-- Rekap Stok Masuk --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 md:p-8 text-gray-900">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300" style="animation-delay: 0.1s">
+                <div class="p-6 md:p-8 text-gray-900 animate-slideUp">
                     <h3 class="text-lg font-medium mb-4">Rekap Stok Masuk Tercatat</h3>
                     <form method="GET" action="{{ route('staf.stok-masuk.index') }}" class="mb-4 flex items-center space-x-2">
                         <label for="tanggal_filter" class="text-sm font-medium">Tampilkan Tanggal:</label>
@@ -76,6 +76,7 @@
                     @if($stokMasukHarian->isEmpty())
                         <p class="text-center text-gray-500 mt-4">Belum ada data stok masuk untuk tanggal {{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d F Y') }}.</p>
                     @else
+                        <div class="hidden md:block">
                         <x-responsive-table>
                         <table class="min-w-full divide-y divide-gray-200 border text-sm sm:text-base">
                             <thead class="bg-gray-50">
@@ -88,7 +89,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($stokMasukHarian as $stok)
-                                    <tr>
+                                    <tr class="hover:bg-blue-50 transition-colors duration-200">
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $stok->user->name ?? 'N/A' }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $stok->bahanBaku->nama_bahan }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($stok->jumlah_masuk, 0, ',', '.') }}</td>
@@ -98,6 +99,24 @@
                             </tbody>
                         </table>
                         </x-responsive-table>
+                        </div>
+
+                        <div class="md:hidden space-y-3">
+                            @foreach ($stokMasukHarian as $stok)
+                                <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-medium text-gray-800">{{ $stok->bahanBaku->nama_bahan }}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">Dicatat oleh: {{ $stok->user->name ?? 'N/A' }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xs text-gray-500">Jumlah</p>
+                                            <p class="text-sm font-semibold">{{ number_format($stok->jumlah_masuk, 0, ',', '.') }} {{ $stok->bahanBaku->satuan }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
             </div>

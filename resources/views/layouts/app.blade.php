@@ -42,10 +42,10 @@
             <div class="flex-1 flex flex-col transition-all duration-300 ease-in-out" :class="{'lg:ml-64': sidebarOpen}">
                 
 
-                <header class="bg-white/80 backdrop-blur shadow-sm border-b border-gray-100 sticky top-0 z-10">
+                <header class="bg-white/80 backdrop-blur shadow-sm border-b border-gray-100 sticky top-0 z-10 transition-all duration-300">
                     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                         <div class="flex items-center gap-3">
-                            <button x-on:click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-indigo-600 focus:outline-none mr-1">
+                            <button x-on:click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-indigo-600 hover:scale-110 focus:outline-none mr-1 transition-all duration-200">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
                                 </svg>

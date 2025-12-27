@@ -34,6 +34,18 @@ class StokController extends Controller
 
         try {
             DB::transaction(function () use ($request) {
+                $bahanBaku = BahanBaku::find($request->bahan_baku_id);
+                $stokMaks = $bahanBaku->stok_maksimum;
+                $stokSekarang = $bahanBaku->stok_terkini;
+                $totalSesudah = $stokSekarang + $request->jumlah_masuk;
+
+                if (!is_null($stokMaks) && $totalSesudah > $stokMaks) {
+                    $tersisa = max(0, $stokMaks - $stokSekarang);
+                    $pesan = "Stok melebihi batas maksimum. Maks: " . number_format($stokMaks, 2, ',', '.') .
+                             " {$bahanBaku->satuan}, tersisa ruang: " . number_format($tersisa, 2, ',', '.') . " {$bahanBaku->satuan}.";
+                    throw new \Exception($pesan);
+                }
+
                 TransaksiStok::create([
                     'bahan_baku_id' => $request->bahan_baku_id,
                     'jumlah_masuk' => $request->jumlah_masuk,
@@ -41,7 +53,6 @@ class StokController extends Controller
                     'user_id' => Auth::id(),
                 ]);
 
-                $bahanBaku = BahanBaku::find($request->bahan_baku_id);
                 $bahanBaku->increment('stok_terkini', $request->jumlah_masuk);
             });
         } catch (\Exception $e) {

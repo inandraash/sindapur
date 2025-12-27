@@ -16,6 +16,8 @@
                         Tambah Pengguna Baru
                     </button>
 
+                    <!-- Desktop/Tablet table -->
+                    <div class="hidden md:block">
                     <x-responsive-table>
                     <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
@@ -28,22 +30,45 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($users as $user)
-                                <tr>
+                                <tr class="hover:bg-cyan-50 transition-colors duration-200">
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->name }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->username }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">{{ $user->role->nama_role }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button @click="editingUser = {{ $user->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900">
+                                        <button @click="editingUser = {{ $user->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 hover:underline transition duration-200">
                                             Edit
                                         </button>
 
-                                        <button @click="deletingUser = {{ $user->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 ml-4">Hapus</button>
+                                        <button @click="deletingUser = {{ $user->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 hover:underline ml-4 transition duration-200">Hapus</button>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                     </x-responsive-table>
+                    </div>
+
+                    <!-- Mobile stacked cards -->
+                    <div class="md:hidden mt-6 space-y-3">
+                        @foreach ($users as $user)
+                            <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $user->name }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Username: {{ $user->username }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-500">Role</p>
+                                        <p class="text-sm font-semibold">{{ $user->role->nama_role }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center justify-end gap-3">
+                                    <button @click="editingUser = {{ $user->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</button>
+                                    <button @click="deletingUser = {{ $user->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-800 hover:underline text-sm transition duration-200">Hapus</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

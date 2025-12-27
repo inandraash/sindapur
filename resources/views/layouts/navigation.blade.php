@@ -1,7 +1,7 @@
 <div class="hidden sm:flex sm:items-center sm:ms-6">
     <x-dropdown align="right" width="48">
         <x-slot name="trigger">
-            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 hover:bg-gray-50 hover:scale-105 focus:outline-none transition ease-in-out duration-150">
                 <div>{{ Auth::user()->name }}</div>
 
                 <div class="ms-1">
@@ -18,7 +18,8 @@
 
                 <x-dropdown-link :href="route('logout')"
                         onclick="event.preventDefault();
-                                    this.closest('form').submit();">
+                                    this.closest('form').submit();"
+                        class="hover:bg-red-50 transition duration-200">
                     {{ __('Keluar') }}
                 </x-dropdown-link>
             </form>
@@ -29,7 +30,7 @@
 <div class="sm:hidden flex items-center">
     <form method="POST" action="{{ route('logout') }}" class="w-full">
         @csrf
-        <button type="submit" class="p-2 text-gray-500 hover:text-red-600 focus:outline-none transition ease-in-out duration-150" title="Keluar">
+        <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:scale-110 focus:outline-none transition ease-in-out duration-150" title="Keluar">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>

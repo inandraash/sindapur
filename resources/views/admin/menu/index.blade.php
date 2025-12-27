@@ -17,6 +17,8 @@
                         Tambah Menu Baru
                     </button>
 
+                    <!-- Desktop/Tablet table -->
+                    <div class="hidden md:block">
                     <x-responsive-table>
                     <table class="min-w-full divide-y divide-gray-200 mt-6 text-sm sm:text-base">
                         <thead class="bg-gray-50">
@@ -28,19 +30,41 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($menus as $menu)
-                                <tr>
+                                <tr class="hover:bg-purple-50 transition-colors duration-200">
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $menu->nama_menu }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">Rp {{ number_format($menu->harga, 0, ',', '.') }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
-                                        <a href="{{ route('admin.resep.index', $menu) }}" class="font-medium text-green-600 hover:text-green-900 mr-4">Atur Resep</a>
-                                        <a href="{{ route('admin.menu.edit', $menu) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</a>
-                                        <button @click="deletingMenu = {{ $menu->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900">Hapus</button>
+                                        <a href="{{ route('admin.resep.index', $menu) }}" class="font-medium text-green-600 hover:text-green-900 hover:underline mr-4 transition duration-200">Atur Resep</a>
+                                        <a href="{{ route('admin.menu.edit', $menu) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline mr-4 transition duration-200">Edit</a>
+                                        <button @click="deletingMenu = {{ $menu->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 hover:underline transition duration-200">Hapus</button>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                     </x-responsive-table>
+                    </div>
+
+                    <!-- Mobile stacked cards -->
+                    <div class="md:hidden mt-6 space-y-3">
+                        @foreach ($menus as $menu)
+                            <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $menu->nama_menu }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Harga: Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <a href="{{ route('admin.resep.index', $menu) }}" class="text-green-600 hover:text-green-800 hover:underline text-sm transition duration-200">Atur Resep</a>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center justify-end gap-3">
+                                    <a href="{{ route('admin.menu.edit', $menu) }}" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</a>
+                                    <button @click="deletingMenu = {{ $menu->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-800 hover:underline text-sm transition duration-200">Hapus</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                     
                     <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                         <div class="flex items-center justify-center min-h-screen px-4 text-center">
