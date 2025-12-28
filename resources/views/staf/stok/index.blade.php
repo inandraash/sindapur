@@ -14,7 +14,7 @@
         }
     @endphp
 
-    <div class="py-2" x-data='{
+    <div x-data='{
             bulkModalOpen: @json($errors->getBag("bulkStock")->any()),
             bulkItems: @json($oldBulkStockItems),
             addRow() { this.bulkItems.push({ bahan_baku_id: "", jumlah_masuk: "" }); },

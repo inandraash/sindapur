@@ -33,7 +33,7 @@
             addBulkRow() { this.bulkItems.push({ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }); },
             removeBulkRow(index) { this.bulkItems.splice(index, 1); if (this.bulkItems.length === 0) { this.addBulkRow(); } },
             hasSelection() { return this.selectedIds.length > 0; }
-        }' class="py-2">
+        }' >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 animate-slideUp">
             
             @if(session('success'))
@@ -180,6 +180,12 @@
 
                     <!-- Mobile stacked cards -->
                     <div class="md:hidden mt-6 space-y-3">
+                        <div class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded" @change="toggleSelectAll($event)" :checked="selectedIds.length === allIds.length && allIds.length > 0">
+                                <span class="text-sm font-medium text-gray-700">Pilih Semua</span>
+                            </label>
+                        </div>
                         <div class="flex items-end gap-2">
                             <form id="m-sort-form-bahan" method="GET" action="{{ route('staf.bahan-baku.index') }}" class="flex items-end gap-2">
                                 <input type="hidden" name="search" value="{{ $search ?? '' }}" />
@@ -220,9 +226,8 @@
                                         <p class="text-sm font-semibold">{{ $bahan->stok_terkini }}</p>
                                     </div>
                                 </div>
-                                <div class="mt-2 flex items-center justify-end gap-3">
+                                <div class="mt-2 flex items-center justify-end">
                                     <button @click="editingBahanBaku = {{ $bahan->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</button>
-                                    <button @click="deletingBahanBaku = {{ $bahan->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-800 hover:underline text-sm transition duration-200">Hapus</button>
                                 </div>
                             </div>
                         @endforeach
