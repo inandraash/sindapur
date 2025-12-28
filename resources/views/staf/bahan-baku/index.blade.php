@@ -169,7 +169,6 @@
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->satuan }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
                                         <button @click="editingBahanBaku = {{ $bahan->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 hover:underline transition duration-200">Edit</button>
-                                        <button @click="deletingBahanBaku = {{ $bahan->toJson() }}; deleteModalOpen = true" class="text-red-600 hover:text-red-900 hover:underline ml-4 transition duration-200">Hapus</button>
                                     </td>
                                 </tr>
                             @endforeach
