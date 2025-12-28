@@ -46,7 +46,9 @@ class MenuController extends Controller
     {
         $request->validate([
             'nama_menu' => 'required|string|max:255',
-            'harga' => 'required|numeric|min:0',
+            'harga' => 'required|numeric|min:1',
+        ], [
+            'harga.min' => 'Harga harus lebih dari 0',
         ]);
 
         Menu::create([
@@ -81,7 +83,9 @@ class MenuController extends Controller
     {
         $request->validate([
             'nama_menu' => 'required|string|max:255',
-            'harga' => 'required|numeric|min:0',
+            'harga' => 'required|numeric|min:1',
+        ], [
+            'harga.min' => 'Harga harus lebih dari 0',
         ]);
 
         $menu = Menu::findOrFail($id);

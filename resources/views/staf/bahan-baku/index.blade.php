@@ -7,14 +7,74 @@
         </h2>
     </x-slot>
 
-    <div x-data="{ addModalOpen: @json($errors->any()), editModalOpen: false, deleteModalOpen: false, editingBahanBaku: null, deletingBahanBaku: null }" class="py-12">
+    @php
+        $allBahanIds = $bahanBakus->pluck('id')->map(fn ($id) => (string) $id);
+        $oldBulkItems = old('items', []);
+        if (!is_array($oldBulkItems) || count($oldBulkItems) === 0) {
+            $oldBulkItems = [
+                ['nama_bahan' => '', 'stok_terkini' => '', 'satuan' => '', 'stok_maksimum' => ''],
+            ];
+        }
+    @endphp
+
+    <div x-data='{
+            addModalOpen: @json($errors->getBag('default')->any()),
+            editModalOpen: false,
+            deleteModalOpen: false,
+            bulkAddModalOpen: @json($errors->getBag('bulkAdd')->any()),
+            editingBahanBaku: null,
+            deletingBahanBaku: null,
+            selectedIds: [],
+            allIds: @json($allBahanIds),
+            bulkItems: @json($oldBulkItems),
+            toggleSelectAll(event) { this.selectedIds = event.target.checked ? [...this.allIds] : []; },
+            isChecked(id) { return this.selectedIds.includes(String(id)); },
+            resetBulkAdd() { this.bulkItems = [{ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }]; },
+            addBulkRow() { this.bulkItems.push({ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }); },
+            removeBulkRow(index) { this.bulkItems.splice(index, 1); if (this.bulkItems.length === 0) { this.addBulkRow(); } },
+            hasSelection() { return this.selectedIds.length > 0; }
+        }' class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 animate-slideUp">
+            
+            @if(session('success'))
+                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg animate-slideUp">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg animate-slideUp">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            <form id="bulk-delete-form" method="POST" action="{{ route('staf.bahan-baku.bulk-destroy') }}" class="hidden">
+                @csrf
+                @method('DELETE')
+                <template x-for="id in selectedIds" :key="id">
+                    <input type="hidden" name="ids[]" :value="id">
+                </template>
+            </form>
+            
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300">
                 <div class="p-6 text-gray-900">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                        <button @click="addModalOpen = true" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
-                            Tambah Bahan Baku Baru
-                        </button>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button @click="addModalOpen = true" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
+                                Tambah Bahan Baku Baru
+                            </button>
+                            <button @click="resetBulkAdd(); bulkAddModalOpen = true" class="inline-flex items-center px-4 py-2 bg-slate-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-600 hover:scale-105 transition-all duration-200">
+                                Tambah Banyak Sekaligus
+                            </button>
+                            <button form="bulk-delete-form" type="submit" :disabled="!hasSelection()" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 hover:scale-105 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
+                                Hapus Terpilih
+                            </button>
+                        </div>
                         <form id="filter-form" method="GET" action="{{ route('staf.bahan-baku.index') }}" class="flex items-end gap-3">
                             <div>
                                 <x-input-label for="search" value="Cari" />
@@ -62,33 +122,36 @@
                                 };
                             @endphp
                             <tr>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 w-10 text-center">
+                                    <input type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded" @change="toggleSelectAll($event)" :checked="selectedIds.length === allIds.length && allIds.length > 0">
+                                </th>
                                 @php $icons = $sortIcons('nama_bahan'); @endphp
                                 <th class="px-3 sm:px-6 py-2 sm:py-3">
-                                    <a href="{{ $sortLink('nama_bahan') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                    <a href="{{ $sortLink('nama_bahan') }}" class="inline-flex items-center gap-1 group hover:text-slate-700 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-slate-100">
                                         <span class="font-semibold">Nama Bahan</span>
-                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-slate-700 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
                                         </span>
                                     </a>
                                 </th>
                                 @php $icons = $sortIcons('stok_terkini'); @endphp
                                 <th class="px-3 sm:px-6 py-2 sm:py-3">
-                                    <a href="{{ $sortLink('stok_terkini') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                    <a href="{{ $sortLink('stok_terkini') }}" class="inline-flex items-center gap-1 group hover:text-slate-700 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-slate-100">
                                         <span class="font-semibold">Stok Terkini</span>
-                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-slate-700 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
                                         </span>
                                     </a>
                                 </th>
                                 @php $icons = $sortIcons('satuan'); @endphp
                                 <th class="px-3 sm:px-6 py-2 sm:py-3">
-                                    <a href="{{ $sortLink('satuan') }}" class="inline-flex items-center gap-1 group hover:text-indigo-600 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-indigo-100">
+                                    <a href="{{ $sortLink('satuan') }}" class="inline-flex items-center gap-1 group hover:text-slate-700 transition duration-200 cursor-pointer py-1 px-2 rounded hover:bg-slate-100">
                                         <span class="font-semibold">Satuan</span>
-                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-indigo-600 transition duration-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-indigo-600 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
+                                        <span class="flex flex-col leading-none text-gray-400 group-hover:text-slate-700 transition duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $icons['asc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 5l-4 5h8l-4-5z"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 -mt-1 {{ $icons['desc'] ? 'text-slate-700 font-bold' : '' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l4-5H6l4 5z"/></svg>
                                         </span>
                                     </a>
                                 </th>
@@ -98,6 +161,9 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($bahanBakus as $bahan)
                                 <tr class="hover:bg-green-50 transition-colors duration-200">
+                                    <td class="px-3 sm:px-4 py-2 sm:py-4 text-center">
+                                        <input type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded" name="ids[]" form="bulk-delete-form" x-model="selectedIds" value="{{ $bahan->id }}">
+                                    </td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->nama_bahan }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->stok_terkini }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->satuan }}</td>
@@ -126,9 +192,9 @@
                                     </select>
                                 </div>
                                 <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'asc' }}" />
-                                <x-primary-button class="ml-1">Terapkan</x-primary-button>
+                                <x-primary-button class="ml-1 bg-slate-700 hover:bg-slate-600 focus:ring-slate-400">Terapkan</x-primary-button>
                             </form>
-                            <a href="{{ route('staf.bahan-baku.index', ['search' => $search ?? null, 'sort_by' => $sortBy ?? 'nama_bahan', 'sort_dir' => ($sortDir ?? 'asc')==='asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-xs">
+                            <a href="{{ route('staf.bahan-baku.index', ['search' => $search ?? null, 'sort_by' => $sortBy ?? 'nama_bahan', 'sort_dir' => ($sortDir ?? 'asc')==='asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center px-3 py-2 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600">
                                 Arah: {{ ($sortDir ?? 'asc')==='asc' ? 'Naik' : 'Turun' }}
                             </a>
                         </div>
@@ -142,7 +208,10 @@
                         @foreach ($bahanBakus as $bahan)
                             <div class="border border-gray-200 rounded-lg p-3 animate-slideUp hover:shadow-md hover:bg-gray-50 transition-all duration-300">
                                 <div class="flex items-start justify-between gap-3">
-                                    <div>
+                                    <div class="pt-1">
+                                        <input type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded" name="ids[]" form="bulk-delete-form" x-model="selectedIds" value="{{ $bahan->id }}">
+                                    </div>
+                                    <div class="flex-1">
                                         <p class="font-medium text-gray-800">{{ $bahan->nama_bahan }}</p>
                                         <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $bahan->satuan }}</p>
                                     </div>
@@ -176,6 +245,74 @@
                         </div>
                         <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" :value="old('stok_maksimum')" /><x-input-error :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
                         <div class="flex items-center justify-end mt-6"><button type="button" @click="addModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button>Simpan</x-primary-button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="bulkAddModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen px-4 text-center md:items-center sm:block sm:p-0">
+                <div x-show="bulkAddModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="bulkAddModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
+                <div x-show="bulkAddModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-5xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl">
+                    <div class="flex items-center justify-between space-x-4">
+                        <h1 class="text-xl font-medium text-gray-800">Tambah Banyak Bahan Baku</h1>
+                        <button @click="bulkAddModalOpen = false" class="text-gray-600 hover:text-gray-700 hover:scale-110 focus:outline-none transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                    </div>
+                    <form method="POST" action="{{ route('staf.bahan-baku.bulk-store') }}" class="mt-6 space-y-4">
+                        @csrf
+                        <p class="text-sm text-gray-600">Isi beberapa baris sekaligus. Baris kosong otomatis diabaikan.</p>
+                        @if($errors->getBag('bulkAdd')->any())
+                            <div class="p-3 bg-red-100 text-red-700 rounded border border-red-300">
+                                <ul class="list-disc list-inside text-sm space-y-1">
+                                    @foreach($errors->getBag('bulkAdd')->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">Nama Bahan</th>
+                                        <th class="px-3 py-2 text-left">Stok Awal</th>
+                                        <th class="px-3 py-2 text-left">Satuan</th>
+                                        <th class="px-3 py-2 text-left">Stok Maksimum</th>
+                                        <th class="px-3 py-2 text-center w-20">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" x-data="{}">
+                                    <template x-for="(item, index) in bulkItems" :key="index">
+                                        <tr>
+                                            <td class="px-3 py-2">
+                                                <x-text-input class="w-full" type="text" x-bind:name="'items[' + index + '][nama_bahan]'" x-model="item.nama_bahan"></x-text-input>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <x-text-input class="w-full" type="number" step="0.01" x-bind:name="'items[' + index + '][stok_terkini]'" x-model="item.stok_terkini"></x-text-input>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <x-text-input class="w-full" type="text" x-bind:name="'items[' + index + '][satuan]'" x-model="item.satuan"></x-text-input>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <x-text-input class="w-full" type="number" step="0.01" x-bind:name="'items[' + index + '][stok_maksimum]'" x-model="item.stok_maksimum"></x-text-input>
+                                            </td>
+                                            <td class="px-3 py-2 text-center">
+                                                <button type="button" @click="removeBulkRow(index)" class="text-red-600 hover:text-red-800">Hapus</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <button type="button" @click="addBulkRow()" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">+ Tambah Baris</button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="bulkAddModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900">Batal</button>
+                                <x-primary-button>Simpan Semua</x-primary-button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

@@ -34,9 +34,12 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
 });
 
 Route::middleware(['auth', 'role:Staf Dapur'])->prefix('staf')->name('staf.')->group(function () {
+    Route::post('/bahan-baku/bulk-store', [BahanBakuController::class, 'bulkStore'])->name('bahan-baku.bulk-store');
+    Route::delete('/bahan-baku/bulk-destroy', [BahanBakuController::class, 'bulkDestroy'])->name('bahan-baku.bulk-destroy');
     Route::resource('bahan-baku', BahanBakuController::class);
 
     Route::get('/stok-masuk', [StokController::class, 'index'])->name('stok-masuk.index');
+    Route::post('/stok-masuk/bulk-store', [StokController::class, 'bulkStore'])->name('stok-masuk.bulk-store');
     Route::post('/stok-masuk', [StokController::class, 'store'])->name('stok-masuk.store');
 
     Route::get('/penjualan', [PenjualanController::class, 'index'])->name('penjualan.index');

@@ -47,8 +47,10 @@ class PenjualanController extends Controller
     {
         $request->validate([
             'penjualan' => ['required', 'array'],
-            'penjualan.*' => ['nullable', 'numeric', 'min:0'],
+            'penjualan.*' => ['nullable', 'numeric', 'min:1'],
             'tanggal_penjualan' => ['required', 'date'],
+        ], [
+            'penjualan.*.min' => 'Jumlah porsi harus minimal 1. Jika tidak terjual, kosongkan saja.',
         ]);
 
         $pemakaianAgregat = [];

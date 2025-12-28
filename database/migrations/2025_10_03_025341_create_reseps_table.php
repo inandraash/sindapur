@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('reseps', function (Blueprint $table) {
             $table->id();
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
-            $table->foreignId('bahan_baku_id')->constrained('bahan_bakus')->onDelete('cascade');
+            // RESTRICT: Mencegah penghapusan bahan baku yang masih digunakan di resep
+            $table->foreignId('bahan_baku_id')->constrained('bahan_bakus')->onDelete('restrict');
             $table->decimal('jumlah_dibutuhkan', 10, 2);
             $table->timestamps();
         });

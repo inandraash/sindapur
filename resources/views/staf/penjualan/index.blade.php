@@ -67,9 +67,14 @@
                         
                         <div class="mt-6 space-y-4">
                             @foreach ($menus as $menu)
-                                <div class="flex items-center justify-between">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                     <label for="menu_{{ $menu->id }}" class="text-md font-medium text-gray-700">{{ $menu->nama_menu }}</label>
-                                    <x-text-input id="menu_{{ $menu->id }}" class="block w-24 text-center" type="number" name="penjualan[{{ $menu->id }}]" min="0" />
+                                    <div class="flex flex-col items-end">
+                                        <x-text-input id="menu_{{ $menu->id }}" class="block w-24 text-center" type="number" name="penjualan[{{ $menu->id }}]" placeholder="0" />
+                                        @error("penjualan.{$menu->id}")
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
                             @endforeach
                         </div>

@@ -80,4 +80,66 @@ class StokController extends Controller
 
         return back()->with('success', 'Data stok masuk berhasil dicatat.');
     }
+
+    public function bulkStore(Request $request)
+    {
+        $rawItems = collect($request->input('items', []))
+            ->filter(function ($item) {
+                return filled($item['bahan_baku_id'] ?? null) || filled($item['jumlah_masuk'] ?? null);
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['items' => $rawItems]);
+
+        $data = $request->validateWithBag(
+            'bulkStock',
+            [
+                'tanggal_masuk' => ['required', 'date'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.bahan_baku_id' => ['required', 'exists:bahan_bakus,id'],
+                'items.*.jumlah_masuk' => ['required', 'numeric', 'min:0.01'],
+            ],
+            [
+                'items.required' => 'Isi minimal satu baris stok masuk.',
+                'items.*.bahan_baku_id.required' => 'Pilih bahan baku.',
+                'items.*.jumlah_masuk.required' => 'Jumlah masuk wajib diisi.',
+                'items.*.jumlah_masuk.min' => 'Jumlah masuk harus lebih dari 0.',
+            ]
+        );
+
+        try {
+            DB::transaction(function () use ($data) {
+                foreach ($data['items'] as $item) {
+                    $bahanBaku = BahanBaku::find($item['bahan_baku_id']);
+                    $stokMaks = $bahanBaku->stok_maksimum;
+                    $stokSekarang = $bahanBaku->stok_terkini;
+                    $totalSesudah = $stokSekarang + $item['jumlah_masuk'];
+
+                    if (!is_null($stokMaks) && $totalSesudah > $stokMaks) {
+                        $tersisa = max(0, $stokMaks - $stokSekarang);
+                        $pesan = "Stok untuk {$bahanBaku->nama_bahan} melebihi batas maksimum. Maks: "
+                            . number_format($stokMaks, 2, ',', '.') . " {$bahanBaku->satuan}, tersisa ruang: "
+                            . number_format($tersisa, 2, ',', '.') . " {$bahanBaku->satuan}.";
+                        throw new \Exception($pesan);
+                    }
+
+                    TransaksiStok::create([
+                        'bahan_baku_id' => $item['bahan_baku_id'],
+                        'jumlah_masuk' => $item['jumlah_masuk'],
+                        'tanggal_masuk' => $data['tanggal_masuk'],
+                        'user_id' => Auth::id(),
+                    ]);
+
+                    $bahanBaku->increment('stok_terkini', $item['jumlah_masuk']);
+                }
+            });
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
+
+        return back()->with('success', 'Berhasil mencatat stok masuk untuk ' . count($data['items']) . ' bahan baku.');
+    }
 }

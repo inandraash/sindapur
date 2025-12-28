@@ -7,7 +7,19 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    @php
+        $oldBulkStockItems = old('items', [ ['bahan_baku_id' => '', 'jumlah_masuk' => ''] ]);
+        if (!is_array($oldBulkStockItems) || count($oldBulkStockItems) === 0) {
+            $oldBulkStockItems = [ ['bahan_baku_id' => '', 'jumlah_masuk' => ''] ];
+        }
+    @endphp
+
+    <div class="py-12" x-data='{
+            bulkModalOpen: @json($errors->getBag("bulkStock")->any()),
+            bulkItems: @json($oldBulkStockItems),
+            addRow() { this.bulkItems.push({ bahan_baku_id: "", jumlah_masuk: "" }); },
+            removeRow(i) { this.bulkItems.splice(i,1); if (this.bulkItems.length === 0) { this.bulkItems.push({ bahan_baku_id: "", jumlah_masuk: "" }); } }
+        }'>
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6 animate-slideUp">
 
             {{-- Notifikasi --}}
@@ -29,6 +41,13 @@
                         <p class="mt-1 text-sm text-gray-600">Catat bahan baku yang baru dibeli atau diterima. Stok akan otomatis bertambah.</p>
                     </header>
                     
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+                        <div class="text-sm text-gray-600">Gunakan formulir cepat untuk 1 item atau klik tombol di kanan untuk banyak item sekaligus.</div>
+                        <div class="flex gap-2">
+                            <button type="button" @click="bulkModalOpen = true" class="px-4 py-2 bg-slate-700 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 transition">Input Banyak Sekaligus</button>
+                        </div>
+                    </div>
+
                     <form method="POST" action="{{ route('staf.stok-masuk.store') }}" class="mt-6 space-y-4">
                         @csrf
                         
@@ -61,6 +80,81 @@
                             <x-primary-button>{{ __('Simpan Stok Masuk') }}</x-primary-button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            {{-- Modal Input Banyak Sekaligus --}}
+            <div x-show="bulkModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
+                <div class="flex items-end justify-center min-h-screen px-4 text-center md:items-center sm:block sm:p-0">
+                    <div x-show="bulkModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="bulkModalOpen = false" class="fixed inset-0 bg-gray-500 bg-opacity-60 transition-opacity" aria-hidden="true"></div>
+                    <div x-show="bulkModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-5xl p-6 my-10 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">Input Banyak Stok Masuk</h3>
+                                <p class="text-sm text-slate-600">Satu tanggal untuk semua baris, baris kosong akan diabaikan.</p>
+                            </div>
+                            <button @click="bulkModalOpen = false" class="text-slate-500 hover:text-slate-700">Tutup</button>
+                        </div>
+
+                        <form method="POST" action="{{ route('staf.stok-masuk.bulk-store') }}" class="space-y-4">
+                            @csrf
+                            <div>
+                                <x-input-label for="bulk_tanggal_masuk" value="Tanggal Masuk" />
+                                <x-text-input id="bulk_tanggal_masuk" class="block mt-1 w-full md:w-1/2" type="date" name="tanggal_masuk" :value="old('tanggal_masuk', date('Y-m-d'))" required />
+                                <x-input-error :messages="$errors->getBag('bulkStock')->get('tanggal_masuk')" class="mt-2" />
+                            </div>
+
+                            @if($errors->getBag('bulkStock')->any())
+                                <div class="p-3 bg-red-100 text-red-700 rounded border border-red-300">
+                                    <ul class="list-disc list-inside text-sm space-y-1">
+                                        @foreach($errors->getBag('bulkStock')->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left text-slate-700">Bahan Baku</th>
+                                            <th class="px-3 py-2 text-left text-slate-700">Jumlah Masuk</th>
+                                            <th class="px-3 py-2 text-center w-24 text-slate-700">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <template x-for="(row, idx) in bulkItems" :key="idx">
+                                            <tr>
+                                                <td class="px-3 py-2 min-w-[220px]">
+                                                    <select class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" x-bind:name="'items[' + idx + '][bahan_baku_id]'" x-model="row.bahan_baku_id">
+                                                        <option value="">-- Pilih Bahan --</option>
+                                                        @foreach($bahanBakus as $bahan)
+                                                            <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }} ({{ $bahan->satuan }})</option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <x-text-input class="w-full" type="number" step="0.01" x-bind:name="'items[' + idx + '][jumlah_masuk]'" x-model="row.jumlah_masuk" />
+                                                </td>
+                                                <td class="px-3 py-2 text-center">
+                                                    <button type="button" @click="removeRow(idx)" class="text-red-600 hover:text-red-700">Hapus</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <button type="button" @click="addRow()" class="px-3 py-2 bg-slate-100 text-slate-800 rounded-md hover:bg-slate-200 text-sm border border-slate-200">+ Tambah Baris</button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="bulkModalOpen = false" class="text-sm text-slate-600 hover:text-slate-800">Batal</button>
+                                    <x-primary-button class="bg-slate-700 hover:bg-slate-600 focus:ring-slate-400">Simpan Semua</x-primary-button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 

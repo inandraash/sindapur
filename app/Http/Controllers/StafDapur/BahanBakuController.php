@@ -52,7 +52,9 @@ class BahanBakuController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'stok_terkini' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:50',
-            'stok_maksimum' => 'nullable|numeric|min:0',
+            'stok_maksimum' => 'nullable|numeric|min:0.01',
+        ], [
+            'stok_maksimum.min' => 'Stok maksimum harus lebih dari 0',
         ]);
 
         BahanBaku::create($request->all());
@@ -85,7 +87,9 @@ class BahanBakuController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'stok_terkini' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:50',
-            'stok_maksimum' => 'nullable|numeric|min:0',
+            'stok_maksimum' => 'nullable|numeric|min:0.01',
+        ], [
+            'stok_maksimum.min' => 'Stok maksimum harus lebih dari 0',
         ]);
 
         $bahanBaku = BahanBaku::findOrFail($id);
@@ -100,8 +104,105 @@ class BahanBakuController extends Controller
     public function destroy(string $id)
     {
         $bahanBaku = BahanBaku::findOrFail($id);
+        
+        // Cek apakah bahan baku ini digunakan di resep
+        $resepCount = $bahanBaku->reseps()->count();
+        if ($resepCount > 0) {
+            return redirect()
+                ->route('staf.bahan-baku.index')
+                ->with('error', "Bahan baku \"{$bahanBaku->nama_bahan}\" tidak bisa dihapus karena masih digunakan di {$resepCount} resep menu. Silakan hapus atau ganti bahan di resep terkait terlebih dahulu.");
+        }
+        
+        // Hapus akan otomatis cascade ke transaksi_stoks dan pemakaian_harians (data historis)
         $bahanBaku->delete();
 
         return redirect()->route('staf.bahan-baku.index')->with('success', 'Bahan baku berhasil dihapus.');
+    }
+
+    /**
+     * Store multiple bahan baku in one submission.
+     */
+    public function bulkStore(Request $request)
+    {
+        $rawItems = collect($request->input('items', []))
+            ->filter(function ($item) {
+                return filled($item['nama_bahan'] ?? null)
+                    || filled($item['stok_terkini'] ?? null)
+                    || filled($item['satuan'] ?? null)
+                    || filled($item['stok_maksimum'] ?? null);
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['items' => $rawItems]);
+
+        $data = $request->validateWithBag(
+            'bulkAdd',
+            [
+                'items' => 'required|array|min:1',
+                'items.*.nama_bahan' => 'required|string|max:255',
+                'items.*.stok_terkini' => 'required|numeric|min:0',
+                'items.*.satuan' => 'required|string|max:50',
+                'items.*.stok_maksimum' => 'nullable|numeric|min:0.01',
+            ],
+            [
+                'items.required' => 'Tambahkan minimal satu bahan baku.',
+                'items.*.nama_bahan.required' => 'Nama bahan wajib diisi.',
+                'items.*.stok_terkini.required' => 'Stok awal wajib diisi.',
+                'items.*.stok_terkini.min' => 'Stok awal tidak boleh negatif.',
+                'items.*.satuan.required' => 'Satuan wajib diisi.',
+                'items.*.stok_maksimum.min' => 'Stok maksimum harus lebih dari 0.',
+            ]
+        );
+
+        foreach ($data['items'] as $item) {
+            BahanBaku::create([
+                'nama_bahan' => $item['nama_bahan'],
+                'stok_terkini' => $item['stok_terkini'],
+                'satuan' => $item['satuan'],
+                'stok_maksimum' => $item['stok_maksimum'] ?? null,
+            ]);
+        }
+
+        return redirect()
+            ->route('staf.bahan-baku.index')
+            ->with('success', 'Berhasil menambahkan ' . count($data['items']) . ' bahan baku sekaligus.');
+    }
+
+    /**
+     * Delete multiple bahan baku at once.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:bahan_bakus,id',
+        ], [
+            'ids.required' => 'Pilih minimal satu bahan baku yang akan dihapus.',
+        ]);
+
+        $bahanBakus = BahanBaku::whereIn('id', $validated['ids'])->get();
+
+        $blocked = [];
+        foreach ($bahanBakus as $bahanBaku) {
+            $resepCount = $bahanBaku->reseps()->count();
+            if ($resepCount > 0) {
+                $blocked[] = "{$bahanBaku->nama_bahan} (dipakai di {$resepCount} resep)";
+            }
+        }
+
+        if (!empty($blocked)) {
+            return redirect()
+                ->route('staf.bahan-baku.index')
+                ->with('error', 'Beberapa bahan tidak bisa dihapus: ' . implode(', ', $blocked));
+        }
+
+        foreach ($bahanBakus as $bahanBaku) {
+            $bahanBaku->delete();
+        }
+
+        return redirect()
+            ->route('staf.bahan-baku.index')
+            ->with('success', 'Berhasil menghapus ' . count($bahanBakus) . ' bahan baku.');
     }
 }

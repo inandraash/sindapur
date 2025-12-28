@@ -65,7 +65,9 @@ class ResepController extends Controller
     {
         $request->validate([
             'bahan_baku_id' => ['required', 'exists:bahan_bakus,id'],
-            'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0'],
+            'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0.01'],
+        ], [
+            'jumlah_dibutuhkan.min' => 'Jumlah harus lebih dari 0',
         ]);
 
         $menu->reseps()->create($request->all());
@@ -95,7 +97,9 @@ class ResepController extends Controller
     public function update(Request $request, Resep $resep)
     {
         $request->validate([
-            'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0'],
+            'jumlah_dibutuhkan' => ['required', 'numeric', 'min:0.01'],
+        ], [
+            'jumlah_dibutuhkan.min' => 'Jumlah harus lebih dari 0',
         ]);
 
         $resep->update([
