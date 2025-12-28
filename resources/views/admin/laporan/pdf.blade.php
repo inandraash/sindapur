@@ -60,7 +60,7 @@
                     @elseif($jenisLaporan == 'stok_masuk')
                         <td>{{ \Carbon\Carbon::parse($data->tanggal_masuk)->format('d/m/Y') }}</td>
                         <td>{{ $data->bahanBaku->nama_bahan }}</td>
-                        <td class="text-center">{{ number_format($data->jumlah_masuk, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format($data->jumlah_masuk, 2, ',', '.') }}</td>
                         <td class="text-center">{{ $data->bahanBaku->satuan }}</td>
                         <td>{{ $data->user->name ?? '-' }}</td>
                     @else

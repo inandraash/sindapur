@@ -14,7 +14,7 @@
         }
     @endphp
 
-    <div class="py-12" x-data='{
+    <div class="py-2" x-data='{
             bulkModalOpen: @json($errors->getBag("bulkStock")->any()),
             bulkItems: @json($oldBulkStockItems),
             addRow() { this.bulkItems.push({ bahan_baku_id: "", jumlah_masuk: "" }); },
@@ -255,7 +255,7 @@
                                 @foreach ($stokMasukHarian as $stok)
                                     <tr class="hover:bg-blue-50 transition-colors duration-200">
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $stok->nama_bahan }}</td>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($stok->total_masuk, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ number_format($stok->total_masuk, 2, ',', '.') }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($stok->last_recorded)->format('H:i') }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">{{ $stok->satuan }}</td>
                                     </tr>
@@ -300,7 +300,7 @@
                                         </div>
                                         <div class="text-right">
                                             <p class="text-xs text-gray-500">Total Masuk</p>
-                                            <p class="text-sm font-semibold">{{ number_format($stok->total_masuk, 0, ',', '.') }} {{ $stok->satuan }}</p>
+                                            <p class="text-sm font-semibold">{{ number_format($stok->total_masuk, 2, ',', '.') }} {{ $stok->satuan }}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -64,11 +64,6 @@ class PredictionController extends Controller
                 $buyQty = min($buyQty, $maxCanBuy);
             }
 
-            // membuat prediksi 1 ketika terdapat pemakaian tapi tidak ada pembelian
-            if ($totalPemakaian > 0 && $buyQty <= 0 && $stokNow < ($stokMaks ?? INF)) {
-                $buyQty = 1;
-            }
-
             $rekomendasi[] = [
                 'nama_bahan' => $bahan->nama_bahan,
                 'stok_terkini' => $stokNow,
@@ -110,5 +105,72 @@ class PredictionController extends Controller
             'sort_by',
             'sort_dir'
         ));
+    }
+
+    public function analisisAkurasi()
+    {
+        $bahanBaku = \App\Models\BahanBaku::all();
+        
+        $start_date = \Carbon\Carbon::parse('2025-12-08');
+        $end_date   = \Carbon\Carbon::parse('2025-12-14');
+        
+        $laporanMingguan = [];
+
+        foreach ($bahanBaku as $bahan) {
+            $tempMapeBahan = 0;
+            $detailHarian = [];
+            $totalAktualMingguan = 0;
+            
+            $current = $start_date->copy();
+            
+            // Loop 7 Hari (Senin - Minggu)
+            while ($current <= $end_date) {
+                
+                // 1. Data Aktual
+                $dataAktual = \App\Models\PemakaianHarian::where('bahan_baku_id', $bahan->id)
+                                ->whereDate('tanggal', $current)
+                                ->first();
+                $aktual = $dataAktual ? $dataAktual->jumlah_terpakai : 0;
+                $totalAktualMingguan += $aktual;
+
+                // 2. Forecast (Rata-rata 7 hari sebelumnya)
+                $tgl_akhir_latih = $current->copy()->subDays(1);
+                $tgl_mulai_latih = $current->copy()->subDays(7);
+                
+                $riwayat = \App\Models\PemakaianHarian::where('bahan_baku_id', $bahan->id)
+                            ->whereBetween('tanggal', [$tgl_mulai_latih, $tgl_akhir_latih])
+                            ->get();
+                
+                // Rumus SMA
+                $forecast = ($riwayat->sum('jumlah_terpakai') > 0) ? ($riwayat->sum('jumlah_terpakai') / 7) : 0;
+
+                // 3. Hitung Error Harian
+                $error = abs($aktual - $forecast);
+                $mapeHarian = ($aktual > 0) ? ($error / $aktual) * 100 : 0;
+
+                $detailHarian[] = [
+                    'hari'    => $current->translatedFormat('l'), // Nama Hari
+                    'tgl'     => $current->format('d/m'),
+                    'mape'    => $mapeHarian
+                ];
+                
+                $tempMapeBahan += $mapeHarian;
+                $current->addDay();
+            }
+
+            // Hitung Rata-rata MAPE Mingguan
+            $avgMapeBahan = $tempMapeBahan / 7;
+
+            if($totalAktualMingguan > 0 || $avgMapeBahan > 0) {
+                $laporanMingguan[] = [
+                    'nama_bahan'   => $bahan->nama_bahan,
+                    'satuan'       => $bahan->satuan,
+                    'detail_harian'=> $detailHarian,
+                    'rata_mape'    => $avgMapeBahan
+                ];
+            }
+        }
+
+        return view('prediksi.analisis_mape', compact('laporanMingguan', 'start_date', 'end_date'));
     }
 }

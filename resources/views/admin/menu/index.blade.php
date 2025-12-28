@@ -8,7 +8,7 @@
     <div 
         x-data="{ deleteModalOpen: false, deletingMenu: null, createModalOpen: false }"
         x-init="$nextTick(() => { if ($refs.createFormHasErrors && $refs.createFormHasErrors.value === '1') createModalOpen = true })"
-        class="py-12"
+        class="py-2"
     >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

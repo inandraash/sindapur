@@ -7,7 +7,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-2">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6 animate-slideUp">
             @if (session('success'))
                 <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4" role="alert">

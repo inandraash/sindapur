@@ -33,7 +33,7 @@
             addBulkRow() { this.bulkItems.push({ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }); },
             removeBulkRow(index) { this.bulkItems.splice(index, 1); if (this.bulkItems.length === 0) { this.addBulkRow(); } },
             hasSelection() { return this.selectedIds.length > 0; }
-        }' class="py-12">
+        }' class="py-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 animate-slideUp">
             
             @if(session('success'))

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ResepController;
 use App\Http\Controllers\StafDapur\BahanBakuController;
 use App\Http\Controllers\StafDapur\PenjualanController;
+use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\StafDapur\StokController;
@@ -49,7 +50,9 @@ Route::middleware(['auth', 'role:Staf Dapur'])->prefix('staf')->name('staf.')->g
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/prediksi', [App\Http\Controllers\PredictionController::class, 'index'])->name('prediksi.index');
+    Route::get('/prediksi', [PredictionController::class, 'index'])->name('prediksi.index');
+
+    Route::get('/analisis-akurasi-mape', [PredictionController::class, 'analisisAkurasi']);
 });
 
 require __DIR__.'/auth.php';

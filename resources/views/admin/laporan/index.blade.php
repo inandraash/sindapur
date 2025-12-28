@@ -7,7 +7,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -146,7 +146,7 @@
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total, 0, ',', '.') }}</td>
                                     @elseif($jenisLaporan == 'stok_masuk')
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->nama_bahan }}</td>
-                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total, 0, ',', '.') }}</td>
+                                        <td class="px-3 sm:px-6 py-2 sm:py-4">{{ number_format($data->total, 2, ',', '.') }}</td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->satuan }}</td>
                                     @else
                                         <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $data->bahanBaku->nama_bahan }}</td>
@@ -201,7 +201,7 @@
                                             <p class="font-medium text-gray-800">{{ $data->bahanBaku->nama_bahan }}</p>
                                             <p class="text-xs text-gray-500 mt-0.5">Satuan: {{ $data->bahanBaku->satuan }}</p>
                                         </div>
-                                        <p class="text-sm font-semibold">{{ number_format($data->total, 0, ',', '.') }}</p>
+                                        <p class="text-sm font-semibold">{{ number_format($data->total, 2, ',', '.') }}</p>
                                     </div>
                                 @else
                                     <div class="flex items-start justify-between gap-3">
