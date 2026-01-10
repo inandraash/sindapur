@@ -266,9 +266,14 @@
                         <div><x-input-label for="nama_bahan" value="Nama Bahan" /><x-text-input id="nama_bahan" class="block mt-1 w-full" type="text" name="nama_bahan" x-model="addFormData.nama_bahan" required autofocus /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div><x-input-label for="stok_terkini" value="Stok Awal" /><x-text-input id="stok_terkini" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="addFormData.stok_terkini" required /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
-                            <div><x-input-label for="satuan" value="Satuan (kg, liter, pcs)" /><x-text-input id="satuan" class="block mt-1 w-full" type="text" name="satuan" x-model="addFormData.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('satuan')" class="mt-2" /></div>
+                            <div>
+                                <x-input-label for="satuan" value="Satuan (kg, liter, pcs)" />
+                                <x-text-input id="satuan" class="block mt-1 w-full" type="text" name="satuan" x-model="addFormData.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required />
+                                <p class="mt-1 text-xs text-gray-500">Contoh: kg, liter, pcs, gram, buah</p>
+                                <x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('satuan')" class="mt-2" />
+                            </div>
                         </div>
-                        <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="addFormData.stok_maksimum" /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="addFormData.stok_maksimum" /><p class="mt-1 text-xs text-gray-500">Opsional. Stok awal tidak boleh melebihi stok maksimum.</p><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
                         <div class="flex items-center justify-end mt-6"><button type="button" @click="resetAddForm(); addModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button @click="showAddErrors = true">Simpan</x-primary-button></div>
                     </form>
                 </div>
@@ -355,9 +360,14 @@
                         <div><x-input-label for="nama_bahan_edit" value="Nama Bahan" /><x-text-input id="nama_bahan_edit" class="block mt-1 w-full" type="text" name="nama_bahan" x-model="editingBahanBaku.nama_bahan" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div><x-input-label for="stok_terkini_edit" value="Stok Terkini" /><x-text-input id="stok_terkini_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="editingBahanBaku.stok_terkini" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
-                            <div><x-input-label for="satuan_edit" value="Satuan" /><x-text-input id="satuan_edit" class="block mt-1 w-full" type="text" name="satuan" x-model="editingBahanBaku.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('satuan')" class="mt-2" /></div>
+                            <div>
+                                <x-input-label for="satuan_edit" value="Satuan" />
+                                <x-text-input id="satuan_edit" class="block mt-1 w-full" type="text" name="satuan" x-model="editingBahanBaku.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required />
+                                <p class="mt-1 text-xs text-gray-500">Contoh: kg, liter, pcs, gram, buah</p>
+                                <x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('satuan')" class="mt-2" />
+                            </div>
                         </div>
-                        <div class="mt-4"><x-input-label for="stok_maksimum_edit" value="Stok Maksimum" /><x-text-input id="stok_maksimum_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="editingBahanBaku.stok_maksimum" /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum_edit" value="Stok Maksimum" /><x-text-input id="stok_maksimum_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="editingBahanBaku.stok_maksimum" /><p class="mt-1 text-xs text-gray-500">Opsional. Stok tidak boleh melebihi stok maksimum.</p><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
                         <div class="flex items-center justify-end mt-6"><button type="button" @click="resetEditForm(); editModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button @click="showEditErrors = true">Perbarui</x-primary-button></div>
                     </form>
                 </div>
