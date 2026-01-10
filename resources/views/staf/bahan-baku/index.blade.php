@@ -15,11 +15,28 @@
                 ['nama_bahan' => '', 'stok_terkini' => '', 'satuan' => '', 'stok_maksimum' => ''],
             ];
         }
+        $editOldValues = [
+            'nama_bahan' => old('nama_bahan'),
+            'stok_terkini' => old('stok_terkini'),
+            'satuan' => old('satuan'),
+            'stok_maksimum' => old('stok_maksimum'),
+        ];
+        $hasEditErrors = $errors->getBag('default')->any() && old('nama_bahan');
+        $addOldValues = [
+            'nama_bahan' => old('nama_bahan', ''),
+            'stok_terkini' => old('stok_terkini', ''),
+            'satuan' => old('satuan', ''),
+            'stok_maksimum' => old('stok_maksimum', ''),
+        ];
     @endphp
 
-    <div x-data='{
+        <div x-data='{
             addModalOpen: @json($errors->getBag('default')->any()),
+            showAddErrors: @json($errors->getBag('default')->any()),
+            addFormData: @json($addOldValues),
             editModalOpen: false,
+            showEditErrors: @json($errors->getBag('default')->any() && $errors->getBag('default')->count() > 0),
+            editOldValues: @json($editOldValues),
             deleteModalOpen: false,
             bulkAddModalOpen: @json($errors->getBag('bulkAdd')->any()),
             editingBahanBaku: null,
@@ -32,6 +49,10 @@
             resetBulkAdd() { this.bulkItems = [{ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }]; },
             addBulkRow() { this.bulkItems.push({ nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }); },
             removeBulkRow(index) { this.bulkItems.splice(index, 1); if (this.bulkItems.length === 0) { this.addBulkRow(); } },
+            resetAddForm() { this.showAddErrors = false; this.addFormData = { nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }; this.$refs.addForm?.reset(); },
+            openAddModal() { this.showAddErrors = false; this.addFormData = { nama_bahan: "", stok_terkini: "", satuan: "", stok_maksimum: "" }; this.$refs.addForm?.reset(); this.addModalOpen = true; },
+            resetEditForm() { this.showEditErrors = false; this.editOldValues = { nama_bahan: null, stok_terkini: null, satuan: null, stok_maksimum: null }; },
+            openEditModal(bahan) { this.editingBahanBaku = bahan; this.showEditErrors = false; this.editModalOpen = true; },
             hasSelection() { return this.selectedIds.length > 0; }
         }' >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 animate-slideUp">
@@ -65,7 +86,7 @@
                 <div class="p-6 text-gray-900">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
                         <div class="flex flex-col sm:flex-row gap-2">
-                            <button @click="addModalOpen = true" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
+                            <button @click="openAddModal()" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 hover:scale-105 transition-all duration-200">
                                 Tambah Bahan Baku Baru
                             </button>
                             <button @click="resetBulkAdd(); bulkAddModalOpen = true" class="inline-flex items-center px-4 py-2 bg-slate-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-600 hover:scale-105 transition-all duration-200">
@@ -168,7 +189,7 @@
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->stok_terkini }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4">{{ $bahan->satuan }}</td>
                                     <td class="px-3 sm:px-6 py-2 sm:py-4 text-right">
-                                        <button @click="editingBahanBaku = {{ $bahan->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-900 hover:underline transition duration-200">Edit</button>
+                                        <button @click="openEditModal({{ $bahan->toJson() }})" class="text-indigo-600 hover:text-indigo-900 hover:underline transition duration-200">Edit</button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -226,7 +247,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-2 flex items-center justify-end">
-                                    <button @click="editingBahanBaku = {{ $bahan->toJson() }}; editModalOpen = true" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</button>
+                                    <button @click="openEditModal({{ $bahan->toJson() }})" class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm transition duration-200">Edit</button>
                                 </div>
                             </div>
                         @endforeach
@@ -237,18 +258,18 @@
 
         <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen px-4 text-center md:items-center sm:block sm:p-0">
-                <div x-show="addModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="addModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
+                <div x-show="addModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="resetAddForm(); addModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
                 <div x-show="addModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl 2xl:max-w-2xl">
-                    <div class="flex items-center justify-between space-x-4"><h1 class="text-xl font-medium text-gray-800">Tambah Bahan Baku Baru</h1><button @click="addModalOpen = false" class="text-gray-600 hover:text-gray-700 hover:scale-110 focus:outline-none transition duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button></div>
-                    <form method="POST" action="{{ route('staf.bahan-baku.store') }}" class="mt-6">
+                    <div class="flex items-center justify-between space-x-4"><h1 class="text-xl font-medium text-gray-800">Tambah Bahan Baku Baru</h1><button @click="resetAddForm(); addModalOpen = false" class="text-gray-600 hover:text-gray-700 hover:scale-110 focus:outline-none transition duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button></div>
+                    <form x-ref="addForm" method="POST" action="{{ route('staf.bahan-baku.store') }}" class="mt-6">
                         @csrf
-                        <div><x-input-label for="nama_bahan" value="Nama Bahan" /><x-text-input id="nama_bahan" class="block mt-1 w-full" type="text" name="nama_bahan" :value="old('nama_bahan')" required autofocus /><x-input-error :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
+                        <div><x-input-label for="nama_bahan" value="Nama Bahan" /><x-text-input id="nama_bahan" class="block mt-1 w-full" type="text" name="nama_bahan" x-model="addFormData.nama_bahan" required autofocus /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div><x-input-label for="stok_terkini" value="Stok Awal" /><x-text-input id="stok_terkini" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" :value="old('stok_terkini')" required /><x-input-error :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
-                            <div><x-input-label for="satuan" value="Satuan (kg, liter, pcs)" /><x-text-input id="satuan" class="block mt-1 w-full" type="text" name="satuan" :value="old('satuan')" required /><x-input-error :messages="$errors->get('satuan')" class="mt-2" /></div>
+                            <div><x-input-label for="stok_terkini" value="Stok Awal" /><x-text-input id="stok_terkini" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="addFormData.stok_terkini" required /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
+                            <div><x-input-label for="satuan" value="Satuan (kg, liter, pcs)" /><x-text-input id="satuan" class="block mt-1 w-full" type="text" name="satuan" x-model="addFormData.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('satuan')" class="mt-2" /></div>
                         </div>
-                        <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" :value="old('stok_maksimum')" /><x-input-error :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
-                        <div class="flex items-center justify-end mt-6"><button type="button" @click="addModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button>Simpan</x-primary-button></div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum" value="Stok Maksimum" /><x-text-input id="stok_maksimum" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="addFormData.stok_maksimum" /><x-input-error x-cloak x-show="showAddErrors" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
+                        <div class="flex items-center justify-end mt-6"><button type="button" @click="resetAddForm(); addModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button @click="showAddErrors = true">Simpan</x-primary-button></div>
                     </form>
                 </div>
             </div>
@@ -297,7 +318,7 @@
                                                 <x-text-input class="w-full" type="number" step="0.01" x-bind:name="'items[' + index + '][stok_terkini]'" x-model="item.stok_terkini"></x-text-input>
                                             </td>
                                             <td class="px-3 py-2">
-                                                <x-text-input class="w-full" type="text" x-bind:name="'items[' + index + '][satuan]'" x-model="item.satuan"></x-text-input>
+                                                <x-text-input class="w-full" type="text" x-bind:name="'items[' + index + '][satuan]'" x-model="item.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf"></x-text-input>
                                             </td>
                                             <td class="px-3 py-2">
                                                 <x-text-input class="w-full" type="number" step="0.01" x-bind:name="'items[' + index + '][stok_maksimum]'" x-model="item.stok_maksimum"></x-text-input>
@@ -325,19 +346,19 @@
 
         <div x-show="editModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen px-4 text-center md:items-center sm:block sm:p-0">
-                <div x-show="editModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="editModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
+                <div x-show="editModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="resetEditForm(); editModalOpen = false" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
                 <div x-show="editModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl 2xl:max-w-2xl">
-                    <div class="flex items-center justify-between space-x-4"><h1 class="text-xl font-medium text-gray-800">Edit Bahan Baku</h1><button @click="editModalOpen = false" class="text-gray-600 hover:text-gray-700 hover:scale-110 focus:outline-none transition duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button></div>
+                    <div class="flex items-center justify-between space-x-4"><h1 class="text-xl font-medium text-gray-800">Edit Bahan Baku</h1><button @click="resetEditForm(); editModalOpen = false" class="text-gray-600 hover:text-gray-700 hover:scale-110 focus:outline-none transition duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button></div>
                     <form method="POST" :action="editingBahanBaku ? `/staf/bahan-baku/${editingBahanBaku.id}` : '#'" class="mt-6" x-if="editingBahanBaku">
                         @csrf
                         @method('PUT')
-                        <div><x-input-label for="nama_bahan_edit" value="Nama Bahan" /><x-text-input id="nama_bahan_edit" class="block mt-1 w-full" type="text" name="nama_bahan" x-model="editingBahanBaku.nama_bahan" required /><x-input-error :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
+                        <div><x-input-label for="nama_bahan_edit" value="Nama Bahan" /><x-text-input id="nama_bahan_edit" class="block mt-1 w-full" type="text" name="nama_bahan" x-model="editingBahanBaku.nama_bahan" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('nama_bahan')" class="mt-2" /></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div><x-input-label for="stok_terkini_edit" value="Stok Terkini" /><x-text-input id="stok_terkini_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="editingBahanBaku.stok_terkini" required /><x-input-error :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
-                            <div><x-input-label for="satuan_edit" value="Satuan" /><x-text-input id="satuan_edit" class="block mt-1 w-full" type="text" name="satuan" x-model="editingBahanBaku.satuan" required /><x-input-error :messages="$errors->get('satuan')" class="mt-2" /></div>
+                            <div><x-input-label for="stok_terkini_edit" value="Stok Terkini" /><x-text-input id="stok_terkini_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_terkini" x-model="editingBahanBaku.stok_terkini" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('stok_terkini')" class="mt-2" /></div>
+                            <div><x-input-label for="satuan_edit" value="Satuan" /><x-text-input id="satuan_edit" class="block mt-1 w-full" type="text" name="satuan" x-model="editingBahanBaku.satuan" pattern="[a-zA-Z\s\-]+" title="Satuan hanya boleh berisi huruf" required /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('satuan')" class="mt-2" /></div>
                         </div>
-                        <div class="mt-4"><x-input-label for="stok_maksimum_edit" value="Stok Maksimum" /><x-text-input id="stok_maksimum_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="editingBahanBaku.stok_maksimum" /><x-input-error :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
-                        <div class="flex items-center justify-end mt-6"><button type="button" @click="editModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button>Perbarui</x-primary-button></div>
+                        <div class="mt-4"><x-input-label for="stok_maksimum_edit" value="Stok Maksimum" /><x-text-input id="stok_maksimum_edit" class="block mt-1 w-full" type="number" step="0.01" name="stok_maksimum" x-model="editingBahanBaku.stok_maksimum" /><x-input-error x-cloak x-show="showEditErrors && editOldValues.nama_bahan" :messages="$errors->get('stok_maksimum')" class="mt-2" /></div>
+                        <div class="flex items-center justify-end mt-6"><button type="button" @click="resetEditForm(); editModalOpen = false" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</button><x-primary-button @click="showEditErrors = true">Perbarui</x-primary-button></div>
                     </form>
                 </div>
             </div>

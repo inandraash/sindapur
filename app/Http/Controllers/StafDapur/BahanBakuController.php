@@ -5,6 +5,7 @@ namespace App\Http\Controllers\StafDapur;
 use App\Http\Controllers\Controller;
 use App\Models\BahanBaku;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class BahanBakuController extends Controller
 {
@@ -49,11 +50,14 @@ class BahanBakuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_bahan' => 'required|string|max:255',
-            'stok_terkini' => 'required|numeric|min:0',
-            'satuan' => 'required|string|max:50',
+            'nama_bahan' => 'required|string|max:255|unique:bahan_bakus,nama_bahan',
+            'stok_terkini' => 'required|numeric|min:0|lte:stok_maksimum',
+            'satuan' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z\s\-]+$/'],
             'stok_maksimum' => 'nullable|numeric|min:0.01',
         ], [
+            'nama_bahan.unique' => 'Bahan baku sudah terdaftar.',
+            'stok_terkini.lte' => 'Stok awal tidak boleh melebihi stok maksimum.',
+            'satuan.regex' => 'Satuan hanya boleh berisi huruf.',
             'stok_maksimum.min' => 'Stok maksimum harus lebih dari 0',
         ]);
 
@@ -84,11 +88,19 @@ class BahanBakuController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'nama_bahan' => 'required|string|max:255',
-            'stok_terkini' => 'required|numeric|min:0',
-            'satuan' => 'required|string|max:50',
+            'nama_bahan' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('bahan_bakus', 'nama_bahan')->ignore($id),
+            ],
+            'stok_terkini' => 'required|numeric|min:0|lte:stok_maksimum',
+            'satuan' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z\s\-]+$/'],
             'stok_maksimum' => 'nullable|numeric|min:0.01',
         ], [
+            'nama_bahan.unique' => 'Nama bahan baku sudah digunakan.',
+            'stok_terkini.lte' => 'Stok tidak boleh melebihi stok maksimum.',
+            'satuan.regex' => 'Satuan hanya boleh berisi huruf.',
             'stok_maksimum.min' => 'Stok maksimum harus lebih dari 0',
         ]);
 
@@ -140,17 +152,27 @@ class BahanBakuController extends Controller
             'bulkAdd',
             [
                 'items' => 'required|array|min:1',
-                'items.*.nama_bahan' => 'required|string|max:255',
-                'items.*.stok_terkini' => 'required|numeric|min:0',
-                'items.*.satuan' => 'required|string|max:50',
+                'items.*.nama_bahan' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'distinct',
+                    Rule::unique('bahan_bakus', 'nama_bahan'),
+                ],
+                'items.*.stok_terkini' => 'required|numeric|min:0|lte:items.*.stok_maksimum',
+                'items.*.satuan' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z\s\-]+$/'],
                 'items.*.stok_maksimum' => 'nullable|numeric|min:0.01',
             ],
             [
                 'items.required' => 'Tambahkan minimal satu bahan baku.',
                 'items.*.nama_bahan.required' => 'Nama bahan wajib diisi.',
+                'items.*.nama_bahan.unique' => 'Bahan baku sudah terdaftar.',
+                'items.*.nama_bahan.distinct' => 'Nama bahan baku tidak boleh duplikat dalam daftar.',
                 'items.*.stok_terkini.required' => 'Stok awal wajib diisi.',
                 'items.*.stok_terkini.min' => 'Stok awal tidak boleh negatif.',
+                'items.*.stok_terkini.lte' => 'Stok awal tidak boleh melebihi stok maksimum.',
                 'items.*.satuan.required' => 'Satuan wajib diisi.',
+                'items.*.satuan.regex' => 'Satuan hanya boleh berisi huruf.',
                 'items.*.stok_maksimum.min' => 'Stok maksimum harus lebih dari 0.',
             ]
         );
